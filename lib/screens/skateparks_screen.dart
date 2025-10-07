@@ -186,15 +186,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
           'Pistas',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-       flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
         actions: [
           Container(

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_screen.dart' as edit;
 import 'change_photo_screen.dart' as photo;
 import 'notifications_settings_screen.dart';
 import 'sound_vibration_settings_screen.dart';
 import 'help_screen.dart';
 import 'manage_account_screen.dart';
-import '../main.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,19 +20,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Configurações',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: GoogleFonts.lexend(fontWeight: FontWeight.w600),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -44,10 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 () => _navigateTo(context, '/edit-profile')),
             _buildTile(Icons.camera_alt, 'Alterar Foto de Perfil',
                 () => _navigateTo(context, '/change-photo')),
-
           ]),
           _buildSection('App', [
-            _buildThemeToggle(),
             _buildTile(Icons.notifications, 'Notificações',
                 () => _navigateTo(context, '/notifications')),
             _buildTile(Icons.volume_up, 'Som e vibração',
@@ -84,19 +74,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.lexend(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+              color: Colors.black,
             ),
           ),
         ),
         Card(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF2C2C2C)
-              : Colors.white,
+          color: Colors.white,
           child: Column(children: children),
         ),
         const SizedBox(height: 16),
@@ -106,62 +92,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildTile(IconData icon, String title, VoidCallback onTap,
       {bool isDestructive = false}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeInOut,
       child: ListTile(
         leading: Icon(icon,
-            color: isDestructive
-                ? Colors.red
-                : (isDark ? Colors.white70 : Colors.grey.shade700)),
+            color: isDestructive ? Colors.red : Colors.grey.shade700),
         title: Text(
           title,
-          style: TextStyle(
-            color: isDestructive
-                ? Colors.red
-                : (isDark ? Colors.white : Colors.black),
+          style: GoogleFonts.lexend(
+            color: isDestructive ? Colors.red : Colors.black,
             fontWeight: FontWeight.w500,
           ),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: isDark ? Colors.white70 : Colors.grey.shade600,
+          color: Colors.grey.shade600,
         ),
         onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildThemeToggle() {
-    final themeProvider = ThemeProvider();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      curve: Curves.easeInOut,
-      child: ListTile(
-        leading: Icon(
-          themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-          color: isDark ? Colors.white70 : Colors.grey.shade700,
-        ),
-        title: Text(
-          'Tema escuro',
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        trailing: Switch(
-          value: themeProvider.isDarkMode,
-          onChanged: (value) {
-            setState(() {
-              themeProvider.toggleTheme();
-            });
-          },
-        ),
       ),
     );
   }
@@ -191,26 +140,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return const edit.EditProfileScreen();
       case '/change-photo':
         return const photo.ChangePhotoScreen();
-
-
       case '/notifications':
         return const NotificationsSettingsScreen();
       case '/sound':
         return const SoundVibrationSettingsScreen();
-      case '/change-password':
-        return const ChangePasswordScreen();
       case '/manage-account':
         return const ManageAccountScreen();
-      case '/delete-account':
-        return const Scaffold(body: Center(child: Text("Em desenvolvimento")));
       case '/gps-permissions':
         return _buildGpsPermissionsScreen();
-      case '/forgot-password':
-        return _buildForgotPasswordScreen();
-      case '/favorite-spots':
-        return const Scaffold(body: Center(child: Text("Em desenvolvimento")));
-      case '/search-radius':
-        return const Scaffold(body: Center(child: Text("Em desenvolvimento")));
       case '/help':
         return const HelpScreen();
       case '/report':
@@ -229,16 +166,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Reportar Problema'),
-            flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: Text('Reportar Problema', style: GoogleFonts.lexend()),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -250,20 +179,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.bug_report,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
+                    color: Colors.black,
                     size: 48,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Reportar Problema',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
+                    style: GoogleFonts.lexend(
+                      color: Colors.black,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -272,10 +197,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     'Ajude-nos a melhorar o SkateFlow reportando problemas',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
+                    style: GoogleFonts.lexend(
+                      color: Colors.black54,
                       fontSize: 14,
                     ),
                   ),
@@ -285,105 +208,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
             Text(
               'Descreva o problema',
-              style: TextStyle(
+              style: GoogleFonts.lexend(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               maxLines: 6,
+              style: GoogleFonts.lexend(),
               decoration: InputDecoration(
                 hintText:
                     'Descreva detalhadamente o problema encontrado...\n\nIncluir informações como:\n• O que você estava fazendo\n• O que esperava que acontecesse\n• O que realmente aconteceu',
+                hintStyle: GoogleFonts.lexend(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF00294F)),
+                  borderSide: const BorderSide(color: Color(0xFF043C70)),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Categoria do problema',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF00294F)),
-                ),
-              ),
-              hint: const Text('Selecione uma categoria'),
-              items: [
-                {'label': 'Bug', 'icon': Icons.bug_report},
-                {'label': 'Crash', 'icon': Icons.error},
-                {'label': 'Performance', 'icon': Icons.speed},
-                {'label': 'Interface', 'icon': Icons.design_services},
-                {'label': 'Outro', 'icon': Icons.help_outline},
-              ]
-                  .map((category) => DropdownMenuItem<String>(
-                        value: category['label'] as String,
-                        child: Row(
-                          children: [
-                            Icon(
-                              category['icon'] as IconData,
-                              size: 20,
-                              color: const Color(0xFF00294F),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(category['label'] as String),
-                          ],
-                        ),
-                      ))
-                  .toList(),
-              onChanged: (value) {},
             ),
             const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00294F).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: const Color(0xFF00294F).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFF00294F)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Sua privacidade é importante. Não incluiremos informações pessoais no relatório.',
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : const Color(0xFF00294F),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -392,12 +241,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SnackBar(
                       content: Text(
                         'Problema reportado com sucesso! Obrigado pelo feedback.',
-                        style: TextStyle(
+                        style: GoogleFonts.lexend(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      backgroundColor: const Color(0xFF00294F),
+                      backgroundColor: const Color(0xFF043C70),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -407,9 +256,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.send),
-                label: const Text('Enviar Relatório'),
+                label: Text('Enviar Relatório', style: GoogleFonts.lexend()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00294F),
+                  backgroundColor: const Color(0xFF043C70),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -426,16 +275,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAboutScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sobre o App'),
-            flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: Text('Sobre o App', style: GoogleFonts.lexend()),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -445,21 +286,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Image.asset(
-                    Theme.of(context).brightness == Brightness.dark
-                        ? 'assets/images/skateparks/logo-branca.png'
-                        : 'assets/images/skateparks/logo-preta.png',
+                  Container(
                     height: 160,
                     width: 160,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF043C70),
+                      borderRadius: BorderRadius.circular(80),
+                    ),
+                    child: const Icon(
+                      Icons.skateboarding,
+                      size: 80,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Versão 1.0.0',
-                    style: TextStyle(
+                    style: GoogleFonts.lexend(
                       fontSize: 14,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
+                      color: Colors.black54,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -470,24 +315,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF2C2C2C)
-                    : Colors.grey.shade50,
+                color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade700
-                      : Colors.grey.shade200,
-                ),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Text(
                 'O SkateFlow é o aplicativo definitivo para skatistas que buscam descobrir as melhores pistas e eventos em sua região. Nossa missão é conectar a vibrante comunidade do skate, facilitando a descoberta de novos spots incríveis e promovendo encontros entre skatistas apaixonados pelo esporte.\n\nCom recursos avançados de localização, avaliações da comunidade e informações detalhadas sobre cada pista, o SkateFlow transforma a experiência de explorar o mundo do skate, tornando cada sessão uma nova aventura.',
-                style: TextStyle(
+                style: GoogleFonts.lexend(
                   fontSize: 16,
                   height: 1.6,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                  color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -501,25 +338,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF00294F).withValues(alpha: 0.1),
+                color: const Color(0xFF043C70).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.favorite,
-                    color: const Color(0xFF00294F),
+                    color: Color(0xFF043C70),
                     size: 24,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Feito com ❤️ para a comunidade do skate',
-                    style: TextStyle(
+                    style: GoogleFonts.lexend(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
+                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -529,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             Text(
               '© 2025 SkateFlow. Todos os direitos reservados.',
-              style: TextStyle(
+              style: GoogleFonts.lexend(
                 color: Colors.grey.shade600,
                 fontSize: 12,
               ),
@@ -544,16 +379,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildTermsScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Termos de Uso'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: Text('Termos de Uso', style: GoogleFonts.lexend()),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -564,32 +391,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.description,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
+                    color: Colors.black,
                     size: 40,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Termos de Uso do SkateFlow',
-                    style: TextStyle(
+                    style: GoogleFonts.lexend(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
+                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Última atualização: Janeiro 2025',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
+                    style: GoogleFonts.lexend(
+                      color: Colors.black54,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -615,66 +436,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'Você é responsável pelo conteúdo que compartilha. Não publique conteúdo ofensivo, ilegal ou que viole direitos de terceiros.',
             ),
             _buildTermsSection(
-              '5. Limitação de Responsabilidade',
+              '5. Propriedade Intelectual',
+              'O SkateFlow e todo seu conteúdo são protegidos por direitos autorais. Não reproduza sem autorização.',
+            ),
+            _buildTermsSection(
+              '6. Limitação de Responsabilidade',
               'O SkateFlow não se responsabiliza por danos decorrentes do uso do aplicativo. Use por sua conta e risco.',
             ),
             _buildTermsSection(
-              '6. Modificações',
-              'Podemos modificar estes termos a qualquer momento. Continuando a usar o app, você aceita as modificações.',
+              '7. Suspensão de Conta',
+              'Podemos suspender ou encerrar sua conta em caso de violação destes termos.',
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00294F).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: const Color(0xFF00294F).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.contact_support, color: const Color(0xFF00294F)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dúvidas sobre os termos?',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Entre em contato conosco:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white70
-                                    : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'suporte@skateflow.com',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: const Color.fromARGB(255, 22, 63, 100),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            _buildTermsSection(
+              '8. Alterações no Serviço',
+              'Reservamos o direito de modificar ou descontinuar o serviço a qualquer momento.',
+            ),
+            _buildTermsSection(
+              '9. Lei Aplicável',
+              'Estes termos são regidos pelas leis brasileiras. Disputas serão resolvidas no foro de São Paulo.',
+            ),
+            _buildTermsSection(
+              '10. Modificações dos Termos',
+              'Podemos modificar estes termos a qualquer momento. Continuando a usar o app, você aceita as modificações.',
             ),
           ],
         ),
@@ -683,47 +466,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildInfoCard(String title, String content, IconData icon) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF2C2C2C)
-            : Colors.white,
-        child: ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF00294F).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF4A90E2)
-                    : const Color(0xFF00294F),
-                size: 20),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF043C70).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-            ),
+          child: Icon(icon, color: const Color(0xFF043C70), size: 20),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.lexend(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Colors.black,
           ),
-          subtitle: Text(
-            content,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white70
-                  : Colors.black,
-            ),
+        ),
+        subtitle: Text(
+          content,
+          style: GoogleFonts.lexend(
+            fontSize: 16,
+            color: Colors.black,
           ),
         ),
       ),
@@ -731,44 +500,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildTermsSection(String title, String content) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF2C2C2C)
-            : Colors.grey.shade50,
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey.shade700
-              : Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.lexend(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF4A90E2)
-                  : const Color(0xFF00294F),
+              color: const Color(0xFF043C70),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: TextStyle(
+            style: GoogleFonts.lexend(
               fontSize: 14,
               height: 1.5,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+              color: Colors.black,
             ),
           ),
         ],
@@ -780,16 +537,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Permissão do GPS'),
-            flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: Text('Permissão do GPS', style: GoogleFonts.lexend()),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -801,147 +550,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.location_on,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
+                    color: Colors.black,
                     size: 48,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Permissão de Localização',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
+                    style: GoogleFonts.lexend(
+                      color: Colors.black,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Configure as permissões de localização do SkateFlow',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
-                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00294F).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: const Color(0xFF00294F).withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: Color(0xFF00294F)),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Por que precisamos da localização?',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '• Encontrar skateparks próximos a você\n• Calcular distâncias e rotas\n• Mostrar sua localização no mapa\n• Recomendar eventos na sua região',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : const Color(0xFF00294F),
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Status da Permissão',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF2C2C2C)
-                    : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade700
-                      : Colors.grey.shade200,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Permissão Concedida',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'O app pode acessar sua localização',
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white70
-                                : Colors.black54,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -949,196 +575,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await openAppSettings();
                 },
                 icon: const Icon(Icons.settings),
-                label: const Text('Abrir Configurações do Sistema'),
+                label: Text('Abrir Configurações do Sistema', style: GoogleFonts.lexend()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00294F),
+                  backgroundColor: const Color(0xFF043C70),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForgotPasswordScreen() {
-    final TextEditingController emailController = TextEditingController();
-
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('Esqueceu a Senha',
-            style: TextStyle(fontWeight: FontWeight.w900)),
-        backgroundColor: const Color(0xFF2C2C2C),
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 40),
-            Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.lock_reset,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    size: 64,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Recuperar Senha',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Digite seu email para receber as instruções\nde recuperação de senha',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 48),
-            Text(
-              'Email',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Digite seu email',
-                prefixIcon: Icon(
-                  Icons.email_outlined,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white70
-                      : Colors.grey.shade600,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF00294F), width: 2),
-                ),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.grey.shade50,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00294F).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: const Color(0xFF00294F).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFF00294F)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Você receberá um email com instruções para redefinir sua senha.',
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : const Color(0xFF00294F),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Email de recuperação enviado! Verifique sua caixa de entrada.',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.send),
-                label: const Text('Enviar Email de Recuperação'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00294F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Voltar ao Login',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.black54,
-                    fontSize: 16,
-                  ),
                 ),
               ),
             ),

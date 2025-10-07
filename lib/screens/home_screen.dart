@@ -145,15 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'SkateFlow',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.grey.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -265,11 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: const Color(0xFF043C70),
                         ),
                         child: Container(
                           margin: const EdgeInsets.all(2),
@@ -303,12 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Color(0xFF3888D2),
-                                      Color(0xFF043C70)
-                                    ],
-                                  ),
+                                  color: Color(0xFF043C70),
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(8)),
                                 ),

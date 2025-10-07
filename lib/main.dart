@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/loading_screen.dart';
@@ -9,8 +10,6 @@ import 'screens/skateparks_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
-import 'package:flutter/material.dart';
-import 'screens/lista_usuarios_screen.dart
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,37 +17,8 @@ void main() {
   runApp(const SkateApp());
 }
 
-class ThemeProvider extends ChangeNotifier {
-  static final ThemeProvider _instance = ThemeProvider._internal();
-  factory ThemeProvider() => _instance;
-  ThemeProvider._internal();
-
-  bool _isDarkMode = true; // Escuro como padrão
-  bool get isDarkMode => _isDarkMode;
-
-  void toggleTheme() {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
-  }
-}
-
-class SkateApp extends StatefulWidget {
+class SkateApp extends StatelessWidget {
   const SkateApp({super.key});
-
-  @override
-  State<SkateApp> createState() => _SkateAppState();
-}
-
-class _SkateAppState extends State<SkateApp> {
-  final ThemeProvider _themeProvider = ThemeProvider();
-
-  @override
-  void initState() {
-    super.initState();
-    _themeProvider.addListener(() {
-      setState(() {});
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,24 +27,24 @@ class _SkateAppState extends State<SkateApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: const Color(0xFF043C70),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.grey.shade800,
-          brightness: Brightness.dark,
+        textTheme: GoogleFonts.lexendTextTheme(),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey.shade600,
+          foregroundColor: Colors.white,
+          titleTextStyle: GoogleFonts.lexend(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF202020),
       ),
-      themeMode: _themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: const LoginScreen(),
       routes: {
-        '/register': (context) => const RegisterScreen(),
         '/loading': (context) => const LoadingScreen(),
         '/main': (context) => const MainScreen(),
         '/settings': (context) => const SettingsScreen(),
@@ -110,8 +80,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -122,9 +90,9 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? const Color(0xFF202020) : Colors.white,
-        selectedItemColor: isDark ? Colors.white : Colors.black,
-        unselectedItemColor: isDark ? Colors.white70 : Colors.grey,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF043C70),
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

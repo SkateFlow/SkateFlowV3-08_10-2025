@@ -3,11 +3,13 @@ import '../models/usuario.dart';
 import '../services/usuario_service.dart';
 
 class ListaUsuariosPage extends StatefulWidget {
+  const ListaUsuariosPage({super.key});
+
   @override
-  _ListaUsuariosPageState createState() => _ListaUsuariosPageState();
+  ListaUsuariosPageState createState() => ListaUsuariosPageState();
 }
 
-class _ListaUsuariosPageState extends State<ListaUsuariosPage> {
+class ListaUsuariosPageState extends State<ListaUsuariosPage> {
   late Future<List<Usuario>> futureUsuarios;
 
   @override
