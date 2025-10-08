@@ -101,6 +101,15 @@ class _LoginScreenState extends State<LoginScreen> {
         _loading = false;
       });
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cadastro efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+
       // Voltar para login após 2 segundos
       Future.delayed(const Duration(seconds: 2), () {
         _toggleMode();
@@ -119,13 +128,154 @@ class _LoginScreenState extends State<LoginScreen> {
         _loading = false;
       });
       
-      Navigator.pushReplacementNamed(context, '/loading');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+      
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/loading');
+      }
     }
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.lock_reset,
+                  size: 60,
+                  color: Color(0xFF043C70),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Esqueceu a senha?',
+                  style: GoogleFonts.lexend(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Digite seu email para receber as instruções de redefinição',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lexend(
+                    fontSize: 14,
+                    color: const Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: GoogleFonts.lexend(),
+                  decoration: InputDecoration(
+                    hintText: 'Digite seu email',
+                    hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF666666)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          emailController.dispose();
+                          Navigator.of(dialogContext).pop();
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.lexend(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF666666),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (emailController.text.isNotEmpty) {
+                            emailController.dispose();
+                            Navigator.of(dialogContext).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Email de redefinição de senha enviado com sucesso!',
+                                  style: GoogleFonts.lexend(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF043C70),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Enviar',
+                          style: GoogleFonts.lexend(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -146,53 +296,64 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo no topo
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Stack(
+              children: [
+                // Logo posicionada no topo (oculta quando teclado aparece)
+                if (!keyboardVisible)
+                  Positioned(
+                    top: 20,
+                    left: 0,
+                    right: 0,
+                    child: Center(
                     child: Image.asset(
                       'assets/images/skateparks/logo-branca.png',
-                      height: 120,
-                      width: 120,
+                      height: 250,
+                      width: 250,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          height: 120,
-                          width: 120,
+                          height: 250,
+                          width: 250,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(60),
+                            borderRadius: BorderRadius.circular(125),
                           ),
                           child: const Icon(
                             Icons.skateboarding,
-                            size: 60,
+                            size: 125,
                             color: Color(0xFF043C70),
                           ),
                         );
                       },
                     ),
                   ),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Formulário centralizado
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+                // Formulário centralizado
+                Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height,
+                  ),
+                  padding: EdgeInsets.only(
+                    top: keyboardVisible ? 20 : 270,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: Center(
                     child: Container(
                       width: double.infinity,
-                      constraints: const BoxConstraints(maxWidth: 400),
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.95),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : double.infinity,
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width > 600 ? 40 : 20,
+                      ),
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -213,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           
                           Container(
-                            margin: const EdgeInsets.only(top: 8, bottom: 32),
+                            margin: const EdgeInsets.only(top: 8, bottom: 24),
                             width: 60,
                             height: 3,
                             decoration: BoxDecoration(
@@ -231,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               placeholder: 'Nome de usuário',
                               icon: Icons.person_outline,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
                           ],
 
                           // Campo email
@@ -241,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Campo senha
                           _buildPasswordField(
@@ -255,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               });
                             },
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Campo confirmar senha (apenas no cadastro)
                           if (_isRegister) ...[
@@ -270,7 +431,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 });
                               },
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
                           ],
 
                           // Mensagens de erro/sucesso
@@ -280,8 +441,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               padding: const EdgeInsets.all(12),
                               margin: const EdgeInsets.only(bottom: 20),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
-                                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                color: Colors.red.withValues(alpha: 0.1),
+                                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -301,8 +462,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               padding: const EdgeInsets.all(12),
                               margin: const EdgeInsets.only(bottom: 20),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
-                                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                color: Colors.green.withValues(alpha: 0.1),
+                                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -329,7 +490,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 0,
-                                disabledBackgroundColor: const Color(0xFF043C70).withOpacity(0.7),
+                                disabledBackgroundColor: const Color(0xFF043C70).withValues(alpha: 0.7),
                               ),
                               child: _loading
                                   ? const SizedBox(
@@ -351,7 +512,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Links
                           Column(
@@ -375,30 +536,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               
-                              const SizedBox(height: 12),
-                              
-                              TextButton(
-                                onPressed: () {
-                                  // Voltar ao início (se houver uma tela inicial)
-                                },
-                                child: Text(
-                                  'Voltar ao início',
-                                  style: GoogleFonts.lexend(
-                                    color: const Color(0xFF666666),
-                                    fontSize: 14,
+                              if (!_isRegister) ...[
+                                const SizedBox(height: 12),
+                                TextButton(
+                                  onPressed: _showForgotPasswordDialog,
+                                  child: Text(
+                                    'Esqueceu a senha?',
+                                    style: GoogleFonts.lexend(
+                                      color: const Color(0xFF666666),
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 20),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -413,10 +571,10 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType? keyboardType,
   }) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFe0e0e0),
+            color: Color(0xFFe0e0e0),
             width: 2,
           ),
         ),
@@ -436,9 +594,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
-          focusedBorder: UnderlineInputBorder(
+          focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(
-              color: const Color(0xFF043C70),
+              color: Color(0xFF043C70),
               width: 2,
             ),
           ),
@@ -455,10 +613,10 @@ class _LoginScreenState extends State<LoginScreen> {
     required VoidCallback onToggleVisibility,
   }) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFe0e0e0),
+            color: Color(0xFFe0e0e0),
             width: 2,
           ),
         ),
@@ -477,23 +635,18 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 16,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.only(top: 16, bottom: 16, right: 40),
-          suffixIcon: Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: IconButton(
-              icon: Icon(
-                showPassword ? Icons.visibility_off : Icons.visibility,
-                color: const Color(0xFF666666),
-                size: 18,
-              ),
-              onPressed: onToggleVisibility,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          suffixIcon: IconButton(
+            icon: Icon(
+              showPassword ? Icons.visibility_off : Icons.visibility,
+              color: const Color(0xFF666666),
+              size: 18,
             ),
+            onPressed: onToggleVisibility,
           ),
-          focusedBorder: UnderlineInputBorder(
+          focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(
-              color: const Color(0xFF043C70),
+              color: Color(0xFF043C70),
               width: 2,
             ),
           ),
