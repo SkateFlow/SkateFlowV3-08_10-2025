@@ -44,16 +44,8 @@ class HelpScreen extends StatelessWidget {
           'Ajuda',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: CustomScrollView(
         slivers: [
@@ -374,16 +366,8 @@ class _SupportScreenState extends State<SupportScreen> {
       appBar: AppBar(
         title: const Text('Precisa de Mais Ajuda',
             style: TextStyle(fontWeight: FontWeight.w900)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

@@ -28,18 +28,11 @@ class ProfileScreen extends StatelessWidget {
               'Perfil',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
-                color: Colors.white,
+                color: Colors.black,
               ),
             ),
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF3888D2), Color(0xFF043C70)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -112,19 +105,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 
-                // Stats
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Center(
-                    child: _buildStatColumn('Nível', user['level'].toString()),
-                  ),
-                ),
-                
                 const SizedBox(height: 20),
                 
                 // Action Buttons
@@ -177,23 +157,12 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      GestureDetector(
-                        onTap: () => _showLevelInfo(context, user['level'] as String),
-                        child: _buildInfoCard(
-                          Icons.trending_up,
-                          'Nível',
-                          user['level'] as String,
-                          Colors.green,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       _buildInfoCard(
                         Icons.location_on,
                         'Pista Favorita',
                         user['favoriteSpot'] as String,
                         Colors.blue,
                       ),
-
                     ],
                   ),
                 ),
@@ -210,7 +179,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   );
                 }),
-                _buildMenuOption(Icons.group, 'Amigos', () {}),
                 _buildMenuOption(Icons.settings, 'Configurações', () {
                   Navigator.pushNamed(context, '/settings');
                 }),

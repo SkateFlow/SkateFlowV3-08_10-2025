@@ -24,8 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Configurações',
           style: GoogleFonts.lexend(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: ListView(
@@ -167,8 +167,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Reportar Problema', style: GoogleFonts.lexend()),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -276,8 +276,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sobre o App', style: GoogleFonts.lexend()),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -380,8 +380,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Termos de Uso', style: GoogleFonts.lexend()),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -538,8 +538,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Permissão do GPS', style: GoogleFonts.lexend()),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
