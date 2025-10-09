@@ -43,7 +43,7 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
       appBar: AppBar(
         title: const Text(
           'Notificações',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,

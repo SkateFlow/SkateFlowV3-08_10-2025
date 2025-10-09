@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: Text(
           'Configurações',
-          style: GoogleFonts.lexend(fontWeight: FontWeight.w600),
+          style: GoogleFonts.lexend(fontWeight: FontWeight.w600, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -166,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Reportar Problema', style: GoogleFonts.lexend()),
+        title: Text('Reportar Problema', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -275,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAboutScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sobre o App', style: GoogleFonts.lexend()),
+        title: Text('Sobre o App', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildTermsScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Termos de Uso', style: GoogleFonts.lexend()),
+        title: Text('Termos de Uso', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -537,7 +537,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Permissão do GPS', style: GoogleFonts.lexend()),
+        title: Text('Permissão do GPS', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),

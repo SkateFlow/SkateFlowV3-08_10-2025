@@ -70,16 +70,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   minHeight: MediaQuery.of(context).size.height - 48,
+                  maxWidth: 350,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                     const SizedBox(height: 40),
                     Image.asset(
                       'assets/images/skateparks/logo-branca.png',
@@ -96,7 +98,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 48),
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxWidth: 350),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: const Color(0xFF08243E),
                         borderRadius: BorderRadius.circular(20),
@@ -373,7 +377,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 40),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

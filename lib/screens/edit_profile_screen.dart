@@ -20,7 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         title: const Text(
           'Editar Perfil',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -32,7 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: const Text(
               'Salvar',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.w600,
               ),
             ),

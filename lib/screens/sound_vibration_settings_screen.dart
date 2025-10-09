@@ -55,7 +55,7 @@ class _SoundVibrationSettingsScreenState extends State<SoundVibrationSettingsScr
       appBar: AppBar(
         title: const Text(
           'Som e Vibração',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,

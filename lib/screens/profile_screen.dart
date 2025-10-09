@@ -3,12 +3,15 @@ import 'edit_profile_screen.dart';
 import 'favorite_parks_screen.dart';
 import 'help_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const Map<String, dynamic> user = {
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final Map<String, dynamic> user = {
       'name': 'Carlos Silva',
       'username': '@carlosskate',
       'bio': 'Skatista há 5 anos. Especialista em manobras de street.',
@@ -18,6 +21,72 @@ class ProfileScreen extends StatelessWidget {
       'totalTime': '120h',
     };
 
+  // Lista de acessos recentes
+  final List<Map<String, dynamic>> _recentAccesses = [
+    {
+      'name': 'Skate Park Central',
+      'date': '15/01/2024',
+      'rating': 4.5,
+    },
+    {
+      'name': 'Pista do Ibirapuera',
+      'date': '12/01/2024',
+      'rating': 4.0,
+    },
+    {
+      'name': 'Bowl da Vila Madalena',
+      'date': '10/01/2024',
+      'rating': 5.0,
+    },
+  ];
+
+  int _getRecentAccessesCount() {
+    return _recentAccesses.length;
+  }
+
+  void _showRecentAccessesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Acessos Recentes'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: _recentAccesses.isEmpty
+                ? const Text('Nenhuma pista visitada recentemente.')
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _recentAccesses.length,
+                    itemBuilder: (context, index) {
+                      final access = _recentAccesses[index];
+                      return ListTile(
+                        leading: const Icon(Icons.skateboarding, color: Colors.green),
+                        title: Text(access['name']),
+                        subtitle: Text('Visitado em: ${access['date']}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                            Text('${access['rating']}'),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -157,11 +226,14 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      _buildInfoCard(
-                        Icons.location_on,
-                        'Pista Favorita',
-                        user['favoriteSpot'] as String,
-                        Colors.blue,
+                      GestureDetector(
+                        onTap: () => _showRecentAccessesDialog(context),
+                        child: _buildInfoCard(
+                          Icons.history,
+                          'Acessos Recentes',
+                          '${_getRecentAccessesCount()} pistas visitadas',
+                          Colors.green,
+                        ),
                       ),
                     ],
                   ),
@@ -239,7 +311,7 @@ class ProfileScreen extends StatelessWidget {
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -248,14 +320,14 @@ class ProfileScreen extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Icon(icon, color: color, size: 28),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,15 +335,15 @@ class ProfileScreen extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: isDark ? Colors.white : Colors.black,
                       ),

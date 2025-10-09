@@ -184,10 +184,10 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
         automaticallyImplyLeading: false,
         title: const Text(
           'Pistas',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           Container(
             width: 200,
@@ -195,7 +195,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
             height: 40,
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value;
@@ -204,10 +204,10 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Pesquisar pistas...',
-                hintStyle: const TextStyle(color: Colors.white70),
-                prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                hintStyle: const TextStyle(color: Colors.black54),
+                prefixIcon: const Icon(Icons.search, color: Colors.black54),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.1),
+                fillColor: Colors.grey.shade200,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,

@@ -342,10 +342,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       width: double.infinity,
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : double.infinity,
+                        maxWidth: MediaQuery.of(context).size.width > 600 ? 350 : double.infinity,
                       ),
                       margin: EdgeInsets.symmetric(
-                        horizontal: MediaQuery.of(context).size.width > 600 ? 40 : 20,
+                        horizontal: MediaQuery.of(context).size.width > 600 ? 60 : 30,
                       ),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(

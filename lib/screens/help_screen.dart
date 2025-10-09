@@ -42,7 +42,7 @@ class HelpScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Ajuda',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -69,7 +69,9 @@ class HelpScreen extends StatelessWidget {
                   Icon(
                     Icons.support_agent,
                     size: 60,
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -365,7 +367,7 @@ class _SupportScreenState extends State<SupportScreen> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Precisa de Mais Ajuda',
-            style: TextStyle(fontWeight: FontWeight.w900)),
+            style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),

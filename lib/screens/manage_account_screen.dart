@@ -9,7 +9,7 @@ class ManageAccountScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Gerenciar Conta',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -294,7 +294,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       appBar: AppBar(
         title: const Text(
           'Alterar Email',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -444,7 +444,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(
         title: const Text(
           'Alterar Senha',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,

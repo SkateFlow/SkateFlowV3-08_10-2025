@@ -116,7 +116,7 @@ class _EventsScreenState extends State<EventsScreen> {
         automaticallyImplyLeading: false,
         title: const Text(
           'Eventos',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -126,13 +126,13 @@ class _EventsScreenState extends State<EventsScreen> {
             margin: const EdgeInsets.only(right: 8),
             height: 40,
             child: TextField(
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: 'Pesquisar eventos...',
-                hintStyle: const TextStyle(color: Colors.white70),
-                prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                hintStyle: const TextStyle(color: Colors.black54),
+                prefixIcon: const Icon(Icons.search, color: Colors.black54),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.1),
+                fillColor: Colors.grey.shade200,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,

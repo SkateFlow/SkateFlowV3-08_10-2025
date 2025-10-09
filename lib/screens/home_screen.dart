@@ -141,12 +141,21 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'SkateFlow',
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Transform.translate(
+          offset: const Offset(-20, 5),
+          child: Image.asset(
+            'assets/images/skateparks/logo-preta.png',
+            height: 80,
+            errorBuilder: (context, error, stackTrace) {
+              return const Text(
+                'SkateFlow',
+                style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
+              );
+            },
+          ),
         ),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           IconButton(
@@ -373,87 +382,106 @@ class _HomeScreenState extends State<HomeScreen> {
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: Container(
-                      width: 60,
-                      height: 60,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Image.asset(
-                          park.images[0],
+                        image: DecorationImage(
+                          image: AssetImage(park.images[0]),
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey.shade800,
-                              child: const Icon(Icons.skateboarding,
-                                  color: Colors.white, size: 24),
-                            );
-                          },
+                          onError: (error, stackTrace) {},
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.transparent,
+                              Colors.white.withValues(alpha: 0.7),
+                              Colors.white.withValues(alpha: 0.95),
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: () => _showParkDetails(context, park),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Container(),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      park.name,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800, 
+                                          fontSize: 17,
+                                          color: Colors.black,
+                                          letterSpacing: 0.3),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black87,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            park.type,
+                                            style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                                letterSpacing: 0.5),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(Icons.location_on,
+                                            size: 14, color: Colors.black54),
+                                        const SizedBox(width: 2),
+                                        Text(_calculateDistance(park.lat, park.lng),
+                                            style: const TextStyle(
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 13)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.star,
+                                            size: 16, color: Colors.amber),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          park.rating.toString(),
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
+                                              fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                    title: Text(
-                      park.name,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, 
-                          fontSize: 16,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : Colors.black),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade700,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                park.type,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.location_on,
-                                size: 14, color: Colors.grey),
-                            const SizedBox(width: 2),
-                            Text(_calculateDistance(park.lat, park.lng),
-                                style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                size: 16, color: Colors.amber),
-                            const SizedBox(width: 4),
-                            Text(
-                              park.rating.toString(),
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).brightness == Brightness.dark 
-                                      ? Colors.white 
-                                      : Colors.black),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _showParkDetails(context, park),
                   ),
                 );
               },

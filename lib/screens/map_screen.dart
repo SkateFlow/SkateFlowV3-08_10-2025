@@ -721,10 +721,10 @@ class _MapScreenState extends State<MapScreen> {
         automaticallyImplyLeading: false,
         title: const Text(
           'Mapa',
-          style: TextStyle(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
-        backgroundColor: Colors.grey.shade600,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
