@@ -40,11 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _successMessage = '';
     });
 
-    // Simular delay de API
     await Future.delayed(const Duration(seconds: 1));
 
     if (_isRegister) {
-      // Validações de cadastro
       if (_usernameController.text.isEmpty || 
           _emailController.text.isEmpty || 
           _passwordController.text.isEmpty || 
@@ -110,12 +108,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // Voltar para login após 2 segundos
       Future.delayed(const Duration(seconds: 2), () {
         _toggleMode();
       });
     } else {
-      // Login
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         setState(() {
           _errorMessage = 'Preencha email e senha';
@@ -278,77 +274,51 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF000a11),
-              Color(0xFF000f1f),
-              Color(0xFF011428),
-              Color(0xFF001732),
-              Color(0xFF001b3b),
-              Color(0xFF001d45),
-              Color(0xFF00204f),
-              Color(0xFF002358),
-              Color(0xFF012562),
-            ],
-          ),
+          color: Color(0xFF001732),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Stack(
-              children: [
-                // Logo posicionada no topo (oculta quando teclado aparece)
-                if (!keyboardVisible)
-                  Positioned(
-                    top: 20,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                    child: Image.asset(
-                      'assets/images/skateparks/logo-branca.png',
-                      height: 250,
-                      width: 250,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 250,
-                          width: 250,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(125),
-                          ),
-                          child: const Icon(
-                            Icons.skateboarding,
-                            size: 125,
-                            color: Color(0xFF043C70),
-                          ),
-                        );
-                      },
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                children: [
+                  if (!keyboardVisible) ...[
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Image.asset(
+                        'assets/images/skateparks/logo-branca.png',
+                        height: 200,
+                        width: 200,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 200,
+                            width: 200,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Icon(
+                              Icons.skateboarding,
+                              size: 100,
+                              color: Color(0xFF043C70),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ),
-                // Formulário centralizado
-                Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    minHeight: MediaQuery.of(context).size.height,
-                  ),
-                  padding: EdgeInsets.only(
-                    top: keyboardVisible ? 20 : 270,
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                  ),
-                  child: Center(
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    const SizedBox(height: 10),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
                     child: Container(
-                      width: double.infinity,
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width > 600 ? 350 : double.infinity,
-                      ),
-                      margin: EdgeInsets.symmetric(
-                        horizontal: MediaQuery.of(context).size.width > 600 ? 60 : 30,
-                      ),
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
+                      constraints: const BoxConstraints(maxWidth: 350),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.95),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
@@ -362,19 +332,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Título
                           Text(
                             _isRegister ? 'CADASTRO' : 'LOGIN',
                             style: GoogleFonts.lexend(
-                              fontSize: 28,
+                              fontSize: 24,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF333333),
                               letterSpacing: 1,
                             ),
                           ),
-                          
                           Container(
-                            margin: const EdgeInsets.only(top: 8, bottom: 24),
+                            margin: const EdgeInsets.only(top: 8, bottom: 16),
                             width: 60,
                             height: 3,
                             decoration: BoxDecoration(
@@ -384,27 +352,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
-
-                          // Campo nome de usuário (apenas no cadastro)
                           if (_isRegister) ...[
                             _buildInputField(
                               controller: _usernameController,
                               placeholder: 'Nome de usuário',
                               icon: Icons.person_outline,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 12),
                           ],
-
-                          // Campo email
                           _buildInputField(
                             controller: _emailController,
                             placeholder: 'Email',
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                           ),
-                          const SizedBox(height: 20),
-
-                          // Campo senha
+                          const SizedBox(height: 12),
                           _buildPasswordField(
                             controller: _passwordController,
                             placeholder: 'Senha',
@@ -416,9 +378,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               });
                             },
                           ),
-                          const SizedBox(height: 20),
-
-                          // Campo confirmar senha (apenas no cadastro)
+                          const SizedBox(height: 12),
                           if (_isRegister) ...[
                             _buildPasswordField(
                               controller: _confirmPasswordController,
@@ -431,15 +391,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 });
                               },
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 12),
                           ],
-
-                          // Mensagens de erro/sucesso
                           if (_errorMessage.isNotEmpty) ...[
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 20),
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
                                 color: Colors.red.withValues(alpha: 0.1),
                                 border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
@@ -449,18 +407,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _errorMessage,
                                 style: GoogleFonts.lexend(
                                   color: const Color(0xFFd32f2f),
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
                           ],
-
                           if (_successMessage.isNotEmpty) ...[
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 20),
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
                                 color: Colors.green.withValues(alpha: 0.1),
                                 border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
@@ -470,17 +427,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _successMessage,
                                 style: GoogleFonts.lexend(
                                   color: const Color(0xFF388e3c),
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
                           ],
-
-                          // Botão principal
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 45,
                             child: ElevatedButton(
                               onPressed: _loading ? null : _handleSubmit,
                               style: ElevatedButton.styleFrom(
@@ -504,24 +459,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : Text(
                                       _isRegister ? 'CADASTRAR' : 'ENTRAR',
                                       style: GoogleFonts.lexend(
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: 0.5,
                                       ),
                                     ),
                             ),
                           ),
-
-                          const SizedBox(height: 20),
-
-                          // Links
+                          const SizedBox(height: 8),
                           Column(
                             children: [
                               TextButton(
                                 onPressed: _toggleMode,
                                 style: TextButton.styleFrom(
                                   backgroundColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -531,20 +483,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: GoogleFonts.lexend(
                                     color: const Color(0xFF043C70),
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
-                              
                               if (!_isRegister) ...[
-                                const SizedBox(height: 12),
                                 TextButton(
                                   onPressed: _showForgotPasswordDialog,
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                                  ),
                                   child: Text(
                                     'Esqueceu a senha?',
                                     style: GoogleFonts.lexend(
                                       color: const Color(0xFF666666),
-                                      fontSize: 14,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ),
@@ -555,8 +508,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -584,16 +538,16 @@ class _LoginScreenState extends State<LoginScreen> {
         keyboardType: keyboardType,
         style: GoogleFonts.lexend(
           color: const Color(0xFF333333),
-          fontSize: 16,
+          fontSize: 14,
         ),
         decoration: InputDecoration(
           hintText: placeholder,
           hintStyle: GoogleFonts.lexend(
             color: const Color(0xFF999999),
-            fontSize: 16,
+            fontSize: 14,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
           focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Color(0xFF043C70),
@@ -626,21 +580,21 @@ class _LoginScreenState extends State<LoginScreen> {
         obscureText: !showPassword,
         style: GoogleFonts.lexend(
           color: const Color(0xFF333333),
-          fontSize: 16,
+          fontSize: 14,
         ),
         decoration: InputDecoration(
           hintText: placeholder,
           hintStyle: GoogleFonts.lexend(
             color: const Color(0xFF999999),
-            fontSize: 16,
+            fontSize: 14,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
           suffixIcon: IconButton(
             icon: Icon(
               showPassword ? Icons.visibility_off : Icons.visibility,
               color: const Color(0xFF666666),
-              size: 18,
+              size: 16,
             ),
             onPressed: onToggleVisibility,
           ),

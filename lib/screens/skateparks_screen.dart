@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/skatepark_service.dart';
 import '../models/skatepark.dart';
+import 'rating_screen.dart';
 
 class SkateparksScreen extends StatefulWidget {
   const SkateparksScreen({super.key});
@@ -456,7 +457,29 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                     ),
                   ).toList(),
                 ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RatingScreen(skatepark: park),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.star_border),
+                        label: const Text('Avaliar Pista'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(

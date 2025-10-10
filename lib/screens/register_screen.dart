@@ -57,50 +57,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
       resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF00294F),
-              Color(0xFF001426),
-              Color(0xFF010A12),
-              Color(0xFF00294F)
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Color(0xFF00294F),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - 48,
-                  maxWidth: 350,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                    const SizedBox(height: 40),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Image.asset(
                       'assets/images/skateparks/logo-branca.png',
-                      height: 234,
-                      width: 234,
+                      height: 180,
+                      width: 180,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Junte-se à comunidade skate',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
                     Container(
                       width: double.infinity,
                       constraints: const BoxConstraints(maxWidth: 350),
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF08243E),
                         borderRadius: BorderRadius.circular(20),
@@ -116,12 +104,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Nome completo',
+                              labelStyle: TextStyle(
+                                color: _nameError ? Colors.red : Colors.white70,
+                                fontSize: 14,
+                              ),
                               prefixIcon: const Icon(
                                 Icons.person_outlined,
                                 color: Colors.white,
+                                size: 20,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -142,11 +135,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   width: 2,
                                 ),
                               ),
-                              labelStyle: TextStyle(
-                                color: _nameError ? Colors.red : Colors.white70,
-                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                             ),
                             textCapitalization: TextCapitalization.words,
                             onChanged: (value) {
@@ -157,14 +148,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextField(
                             controller: _emailController,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Email',
+                              labelStyle: TextStyle(
+                                color: _emailError ? Colors.red : Colors.white70,
+                                fontSize: 14,
+                              ),
                               prefixIcon: const Icon(Icons.email_outlined,
-                                  color: Colors.white),
+                                  color: Colors.white, size: 20),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
@@ -187,12 +182,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   width: 2,
                                 ),
                               ),
-                              labelStyle: TextStyle(
-                                color:
-                                    _emailError ? Colors.red : Colors.white70,
-                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               errorText: _emailError &&
                                       _emailController.text.isNotEmpty
                                   ? 'Email inválido'
@@ -207,20 +199,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextField(
                             controller: _passwordController,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Senha',
+                              labelStyle: TextStyle(
+                                color: _passwordError ? Colors.red : Colors.white70,
+                                fontSize: 14,
+                              ),
                               prefixIcon: const Icon(Icons.lock_outlined,
-                                  color: Colors.white),
+                                  color: Colors.white, size: 20),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                     _obscurePassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
-                                    color: Colors.white),
+                                    color: Colors.white, size: 20),
                                 onPressed: () {
                                   setState(() {
                                     _obscurePassword = !_obscurePassword;
@@ -252,13 +248,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   width: 2,
                                 ),
                               ),
-                              labelStyle: TextStyle(
-                                color: _passwordError
-                                    ? Colors.red
-                                    : Colors.white70,
-                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               errorText: _passwordError && _passwordErrorMessage != null
                                   ? _passwordErrorMessage
                                   : null,
@@ -272,20 +264,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               });
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextField(
                             controller: _confirmPasswordController,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Confirmar senha',
+                              labelStyle: TextStyle(
+                                color: _confirmPasswordError ? Colors.red : Colors.white70,
+                                fontSize: 14,
+                              ),
                               prefixIcon: const Icon(Icons.lock_outlined,
-                                  color: Colors.white),
+                                  color: Colors.white, size: 20),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureConfirmPassword
                                       ? Icons.visibility_off
                                       : Icons.visibility,
                                   color: Colors.white,
+                                  size: 20,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -319,13 +316,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   width: 2,
                                 ),
                               ),
-                              labelStyle: TextStyle(
-                                color: _confirmPasswordError
-                                    ? Colors.red
-                                    : Colors.white70,
-                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               errorText: _confirmPasswordError &&
                                       _confirmPasswordController.text.isNotEmpty
                                   ? 'As senhas não coincidem'
@@ -339,10 +332,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               });
                             },
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 45,
                             child: ElevatedButton(
                               onPressed: _register,
                               style: ElevatedButton.styleFrom(
@@ -353,17 +346,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 elevation: 2,
                               ),
-                              child: Text(
+                              child: const Text(
                                 'Cadastrar',
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);
@@ -372,13 +365,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Já tem conta? Faça login',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
