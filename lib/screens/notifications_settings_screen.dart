@@ -11,8 +11,6 @@ class NotificationsSettingsScreen extends StatefulWidget {
 class _NotificationsSettingsScreenState extends State<NotificationsSettingsScreen> {
   bool _eventsNotifications = true;
   bool _nearbyParksNotifications = true;
-  bool _promotionsNotifications = false;
-  bool _socialNotifications = true;
   bool _systemNotifications = true;
 
   @override
@@ -26,8 +24,6 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
     setState(() {
       _eventsNotifications = prefs.getBool('events_notifications') ?? true;
       _nearbyParksNotifications = prefs.getBool('nearby_parks_notifications') ?? true;
-      _promotionsNotifications = prefs.getBool('promotions_notifications') ?? false;
-      _socialNotifications = prefs.getBool('social_notifications') ?? true;
       _systemNotifications = prefs.getBool('system_notifications') ?? true;
     });
   }
@@ -97,32 +93,6 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
             (value) {
               setState(() => _nearbyParksNotifications = value);
               _saveSetting('nearby_parks_notifications', value);
-            },
-          ),
-          
-          const SizedBox(height: 24),
-          _buildSectionTitle('Marketing'),
-          _buildNotificationTile(
-            'Promoções',
-            'Ofertas especiais e descontos',
-            Icons.local_offer,
-            _promotionsNotifications,
-            (value) {
-              setState(() => _promotionsNotifications = value);
-              _saveSetting('promotions_notifications', value);
-            },
-          ),
-          
-          const SizedBox(height: 24),
-          _buildSectionTitle('Social'),
-          _buildNotificationTile(
-            'Atividade social',
-            'Novos seguidores e interações',
-            Icons.people,
-            _socialNotifications,
-            (value) {
-              setState(() => _socialNotifications = value);
-              _saveSetting('social_notifications', value);
             },
           ),
           

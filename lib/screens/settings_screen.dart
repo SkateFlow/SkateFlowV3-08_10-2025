@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 () => _navigateTo(context, '/manage-account')),
           ]),
           _buildSection('Localização', [
-            _buildTile(Icons.gps_fixed, 'Permissão do GPS',
+            _buildTile(Icons.gps_fixed, 'Permissões do Sistema',
                 () => _navigateTo(context, '/gps-permissions')),
           ]),
           _buildSection('Suporte', [
@@ -537,7 +537,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Permissão do GPS', style: GoogleFonts.lexend(color: Colors.black)),
+        title: Text('Permissões do Sistema', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),

@@ -405,7 +405,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Agendar Ingresso'),
+                            child: const Text('Ir para o site'),
                           ),
                         ),
                         const SizedBox(width: 12),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/skatepark_service.dart';
+import '../services/favorites_service.dart';
 import '../models/skatepark.dart';
 import 'rating_screen.dart';
 
@@ -26,6 +27,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
   List<Skatepark> _filteredSkateparks = [];
   Position? _currentPosition;
   final SkateparkService _skateparkService = SkateparkService();
+  final FavoritesService _favoritesService = FavoritesService();
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -33,15 +35,21 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
     super.initState();
     _getCurrentLocation();
     _skateparkService.addListener(_onSkateparksUpdated);
+    _favoritesService.addListener(_onFavoritesUpdated);
   }
 
   void _onSkateparksUpdated() {
     _applyFilters();
   }
 
+  void _onFavoritesUpdated() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _skateparkService.removeListener(_onSkateparksUpdated);
+    _favoritesService.removeListener(_onFavoritesUpdated);
     _searchController.dispose();
     for (final controller in _pageControllers.values) {
       controller.dispose();
@@ -336,7 +344,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
+      builder: (modalContext) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         maxChildSize: 0.95,
         minChildSize: 0.7,
@@ -498,15 +506,50 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Favoritar'),
+                          child: StatefulBuilder(
+                            builder: (context, setModalState) {
+                              return OutlinedButton(
+                                onPressed: () {
+                                  final parkData = {
+                                    'name': park.name,
+                                    'type': park.type,
+                                    'distance': _calculateDistance(park.lat, park.lng),
+                                    'rating': park.rating,
+                                    'image': park.images.isNotEmpty ? park.images.first : 'assets/images/skateparks/SkateCity.png',
+                                    'address': park.address,
+                                    'hours': park.hours,
+                                  };
+                                  
+                                  if (_favoritesService.isFavorite(park.name)) {
+                                    _favoritesService.removeFromFavorites(park.name);
+                                    ScaffoldMessenger.of(modalContext).showSnackBar(
+                                      const SnackBar(content: Text('Removido dos favoritos')),
+                                    );
+                                  } else {
+                                    if (_favoritesService.addToFavorites(parkData)) {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        const SnackBar(content: Text('Adicionado aos favoritos')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                  setModalState(() {});
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(_favoritesService.isFavorite(park.name) ? 'Remover' : 'Favoritar'),
+                              );
+                            },
                           ),
                         ),
                       ],

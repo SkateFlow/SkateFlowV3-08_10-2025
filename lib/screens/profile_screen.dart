@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
-import 'favorite_parks_screen.dart';
 import 'help_screen.dart';
+import '../services/favorites_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +20,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'sessionsCount': 47,
       'totalTime': '120h',
     };
+
+  final FavoritesService _favoritesService = FavoritesService();
 
   // Lista de acessos recentes
   final List<Map<String, dynamic>> _recentAccesses = [
@@ -42,6 +44,178 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int _getRecentAccessesCount() {
     return _recentAccesses.length;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesService.addListener(_onFavoritesUpdated);
+  }
+
+  @override
+  void dispose() {
+    _favoritesService.removeListener(_onFavoritesUpdated);
+    super.dispose();
+  }
+
+  void _onFavoritesUpdated() {
+    setState(() {});
+  }
+
+  void _showMaxFavoritesWarning() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showFavoriteParkDetails(BuildContext context, Map<String, dynamic> park) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                height: 150,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(park['image'] as String),
+                    fit: BoxFit.cover,
+                    onError: (error, stackTrace) {},
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    park['name'] as String,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : Colors.black,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    park['type'] as String,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    park['address'] as String? ?? 'Endereço não disponível',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  'Aberto das ${park['hours'] as String? ?? '6h às 22h'}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.star, color: Colors.amber, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  '${park['rating']}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  park['distance'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _favoritesService.removeFromFavorites(park['name'] as String);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Removido dos favoritos')),
+                  );
+                },
+                icon: const Icon(Icons.favorite),
+                label: const Text('Remover dos Favoritos'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showRecentAccessesDialog(BuildContext context) {
@@ -176,46 +350,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 
                 const SizedBox(height: 20),
                 
-                // Action Buttons
+                // Action Button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const EditProfileScreen(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfileScreen(),
                           ),
-                          child: const Text('Editar Perfil'),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _showShareBottomSheet(context),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('Compartilhar'),
-                        ),
-                      ),
-                    ],
+                      child: const Text('Editar Perfil'),
+                    ),
                   ),
                 ),
                 
@@ -241,16 +399,157 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 
                 const SizedBox(height: 30),
                 
-                // Menu Options
+                // Favorite Parks Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.favorite, color: Colors.red, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Pistas Favoritas',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : Colors.black,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_favoritesService.favoriteParks.length}/${FavoritesService.maxFavoriteParks}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _favoritesService.favoriteParks.isNotEmpty
+                    ? SizedBox(
+                        height: 120,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _favoritesService.favoriteParks.length,
+                          physics: const BouncingScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final park = _favoritesService.favoriteParks[index];
+                            return GestureDetector(
+                              onTap: () => _showFavoriteParkDetails(context, park),
+                              child: Container(
+                                width: 200,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  image: DecorationImage(
+                                    image: AssetImage(park['image'] as String),
+                                    fit: BoxFit.cover,
+                                    onError: (error, stackTrace) {},
+                                  ),
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withValues(alpha: 0.7),
+                                      ],
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        park['name'] as String,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.2),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              park['type'] as String,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          const Icon(Icons.star, color: Colors.amber, size: 12),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            park['rating'].toString(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Container(
+                        height: 120,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.favorite_border,
+                                size: 32,
+                                color: Colors.grey.shade500,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Você ainda não possui pistas favoritas',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                const SizedBox(height: 30),
 
-                _buildMenuOption(Icons.favorite, 'Pistas Favoritas', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FavoriteParksScreen(),
-                    ),
-                  );
-                }),
+                // Menu Options
                 _buildMenuOption(Icons.settings, 'Configurações', () {
                   Navigator.pushNamed(context, '/settings');
                 }),
@@ -279,32 +578,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatColumn(String label, String value) {
-    return Builder(
-      builder: (context) {
-        return Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   Widget _buildInfoCard(IconData icon, String title, String subtitle, Color color) {
     return Builder(
@@ -389,219 +663,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showLevelInfo(BuildContext context, String level) {
-    String emoji;
-    String description;
-    
-    switch (level) {
-      case 'Iniciante':
-        emoji = '🙂';
-        description = 'Você está começando sua jornada no skate! Aqui, o foco é aprender as bases, desenvolver equilíbrio, postura e dominar as primeiras manobras.';
-        break;
-      case 'Intermediário':
-        emoji = '😀';
-        description = 'Você já tem domínio das manobras básicas e busca novos desafios. É hora de aprimorar a técnica, aumentar a fluidez e explorar combinações mais complexas.';
-        break;
-      case 'Avançado':
-        emoji = '😃';
-        description = 'Você já domina o skate com confiança, executa manobras técnicas e cria seu próprio estilo. Agora, o objetivo é aperfeiçoar detalhes e elevar ainda mais o nível.';
-        break;
-      default:
-        emoji = '🙂';
-        description = 'Continue praticando para evoluir no skate!';
-    }
-    
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  emoji,
-                  style: const TextStyle(fontSize: 48),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Nível $level',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? Colors.white : Colors.black,
-                    foregroundColor: isDark ? Colors.black : Colors.white,
-                  ),
-                  child: const Text('Entendi'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
-  void _showShareBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Compartilhar perfil',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.link, color: isDark ? Colors.white : Colors.black),
-                ),
-                title: Text(
-                  'Copiar link',
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Link copiado para a área de transferência')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF25D366),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.chat,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  'WhatsApp',
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                ),
-                subtitle: Text(
-                  'Compartilhar no WhatsApp',
-                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Compartilhado no WhatsApp')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE4405F).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFE4405F), Color(0xFF833AB4), Color(0xFFF77737)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  'Instagram',
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                ),
-                subtitle: Text(
-                  'Compartilhar no Instagram',
-                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Compartilhado no Instagram')),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
+
 }
