@@ -22,6 +22,7 @@ class SkateparkService {
         'assets/images/skateparks/SkateCity.png',
         'assets/images/skateparks/SkateCity2.png'
       ],
+      addedBy: 'João Silva',
     ),
     Skatepark(
       id: '2',
@@ -38,6 +39,7 @@ class SkateparkService {
         'assets/images/skateparks/Rajas1.png',
         'assets/images/skateparks/Rajas2.png'
       ],
+      addedBy: 'Maria Santos',
     ),
     Skatepark(
       id: '3',
@@ -54,6 +56,7 @@ class SkateparkService {
         'assets/images/skateparks/image2.png',
         'assets/images/skateparks/image9.png'
       ],
+      addedBy: 'Pedro Costa',
     ),
   ];
 

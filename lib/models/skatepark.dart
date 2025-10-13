@@ -10,6 +10,7 @@ class Skatepark {
   final String hours;
   final String description;
   final List<String> images;
+  final String? addedBy;
 
   Skatepark({
     required this.id,
@@ -23,6 +24,7 @@ class Skatepark {
     required this.hours,
     required this.description,
     required this.images,
+    this.addedBy,
   });
 
   Map<String, dynamic> toJson() {
@@ -38,6 +40,7 @@ class Skatepark {
       'hours': hours,
       'description': description,
       'images': images,
+      'addedBy': addedBy,
     };
   }
 
@@ -54,6 +57,7 @@ class Skatepark {
       hours: json['hours'],
       description: json['description'],
       images: List<String>.from(json['images']),
+      addedBy: json['addedBy'],
     );
   }
 
@@ -69,6 +73,7 @@ class Skatepark {
     String? hours,
     String? description,
     List<String>? images,
+    String? addedBy,
   }) {
     return Skatepark(
       id: id ?? this.id,
@@ -82,6 +87,7 @@ class Skatepark {
       hours: hours ?? this.hours,
       description: description ?? this.description,
       images: images ?? this.images,
+      addedBy: addedBy ?? this.addedBy,
     );
   }
 }

@@ -61,16 +61,18 @@ class _RatingScreenState extends State<RatingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Avaliar Pista'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Text(
               widget.skatepark.name,
               style: const TextStyle(
@@ -136,7 +138,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 fillColor: Colors.grey.shade100,
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -155,8 +157,10 @@ class _RatingScreenState extends State<RatingScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
+      ),
       ),
     );
   }

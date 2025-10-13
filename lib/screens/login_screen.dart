@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   String _errorMessage = '';
   String _successMessage = '';
+  final _authService = AuthService();
 
   void _toggleMode() {
     setState(() {
@@ -94,23 +96,42 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      final success = await _authService.register(
+        _emailController.text, 
+        _passwordController.text, 
+        _usernameController.text
+      );
+      
       setState(() {
-        _successMessage = 'Cadastro realizado com sucesso!';
         _loading = false;
       });
+      
+      if (success) {
+        setState(() {
+          _successMessage = 'Cadastro realizado com sucesso!';
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cadastro efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Cadastro efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          );
 
-      Future.delayed(const Duration(seconds: 2), () {
-        _toggleMode();
-      });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.pushReplacementNamed(context, '/loading');
+            }
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Erro ao criar conta';
+        });
+      }
     } else {
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         setState(() {
@@ -120,21 +141,29 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      final success = await _authService.login(_emailController.text, _passwordController.text);
+      
       setState(() {
         _loading = false;
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-      
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/loading');
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login efetuado com sucesso!', style: GoogleFonts.lexend(color: Colors.white)),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          );
+          
+          Navigator.pushReplacementNamed(context, '/loading');
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Email ou senha inválidos';
+        });
       }
     }
   }

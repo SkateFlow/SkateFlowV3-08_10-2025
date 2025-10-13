@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChangePhotoScreen extends StatelessWidget {
   const ChangePhotoScreen({super.key});
@@ -36,21 +37,21 @@ class ChangePhotoScreen extends StatelessWidget {
               Icons.camera_alt,
               'Tirar Foto',
               'Use a câmera para tirar uma nova foto',
-              () {},
+              () => _pickImage(context, ImageSource.camera),
             ),
             const SizedBox(height: 16),
             _buildOption(
               Icons.photo_library,
               'Escolher da Galeria',
               'Selecione uma foto da sua galeria',
-              () {},
+              () => _pickImage(context, ImageSource.gallery),
             ),
             const SizedBox(height: 16),
             _buildOption(
               Icons.delete,
               'Remover Foto',
               'Voltar para a foto padrão',
-              () {},
+              () => _removePhoto(context),
               isDestructive: true,
             ),
             
@@ -83,6 +84,30 @@ class ChangePhotoScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(source: source);
+      if (image != null) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto selecionada com sucesso!')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao selecionar foto')),
+      );
+    }
+  }
+
+  void _removePhoto(BuildContext context) {
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Foto removida com sucesso!')),
     );
   }
 

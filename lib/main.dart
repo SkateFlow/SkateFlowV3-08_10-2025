@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'constants/app_constants.dart';
 import 'screens/login_screen.dart';
 import 'screens/loading_screen.dart';
 import 'screens/home_screen.dart';
@@ -26,7 +27,7 @@ class SkateApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF043C70),
+          seedColor: const Color(AppConstants.darkBlue),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
@@ -69,18 +70,21 @@ class _MainScreenState extends State<MainScreen> {
     _currentIndex = widget.initialIndex;
   }
   
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const MapScreen(),
-    const SkateparksScreen(),
-    const EventsScreen(),
-    const ProfileScreen(),
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    MapScreen(),
+    SkateparksScreen(),
+    EventsScreen(),
+    ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -90,7 +94,7 @@ class _MainScreenState extends State<MainScreen> {
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF043C70),
+        selectedItemColor: const Color(AppConstants.darkBlue),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(

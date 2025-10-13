@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../services/skatepark_service.dart';
+import '../services/favorites_service.dart';
 import '../models/skatepark.dart';
+import 'rating_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Position? _currentPosition;
   final List<Marker> _markers = [];
   final SkateparkService _skateparkService = SkateparkService();
+  final FavoritesService _favoritesService = FavoritesService();
 
   @override
   void initState() {
@@ -25,16 +28,22 @@ class _HomeScreenState extends State<HomeScreen> {
     _getCurrentLocation();
     _loadNearbyParks();
     _skateparkService.addListener(_onSkateparksUpdated);
+    _favoritesService.addListener(_onFavoritesUpdated);
   }
 
   @override
   void dispose() {
     _skateparkService.removeListener(_onSkateparksUpdated);
+    _favoritesService.removeListener(_onFavoritesUpdated);
     super.dispose();
   }
 
   void _onSkateparksUpdated() {
     _loadNearbyParks();
+  }
+
+  void _onFavoritesUpdated() {
+    setState(() {});
   }
 
   String _calculateDistance(double lat, double lng) {
@@ -84,7 +93,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (permission != LocationPermission.denied) {
-      final position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+          distanceFilter: 0,
+        ),
+      );
       setState(() {
         _currentPosition = position;
       });
@@ -503,12 +517,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => const MainScreen(initialIndex: 2),
+                    builder: (context) => const MainScreen(initialIndex: 1),
                   ),
                 );
               },
               child: Container(
-                height: 350,
+                height: 300,
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -516,54 +530,101 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: _currentPosition == null
-                      ? Container(
-                          color: Colors.grey.shade800,
-                          child: const Center(
-                            child: CircularProgressIndicator(color: Colors.white),
-                          ),
-                        )
-                      : FlutterMap(
-                          options: MapOptions(
-                            initialCenter: LatLng(_currentPosition!.latitude,
-                                _currentPosition!.longitude),
-                            initialZoom: 12,
-                            onTap: (_, __) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const MainScreen(initialIndex: 2),
+                  child: Stack(
+                    children: [
+                      _currentPosition == null
+                          ? Container(
+                              color: Colors.grey.shade800,
+                              child: const Center(
+                                child: CircularProgressIndicator(color: Colors.white),
+                              ),
+                            )
+                          : FlutterMap(
+                              options: MapOptions(
+                                initialCenter: LatLng(_currentPosition!.latitude,
+                                    _currentPosition!.longitude),
+                                initialZoom: 12,
+                                interactionOptions: const InteractionOptions(
+                                  flags: InteractiveFlag.none,
                                 ),
-                              );
-                            },
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.example.skateflow',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                ..._markers,
-                                if (_currentPosition != null)
-                                  Marker(
-                                    point: LatLng(
-                                      _currentPosition!.latitude,
-                                      _currentPosition!.longitude,
-                                    ),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.skateflow',
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    ..._markers,
+                                    if (_currentPosition != null)
+                                      Marker(
+                                        point: LatLng(
+                                          _currentPosition!.latitude,
+                                          _currentPosition!.longitude,
+                                        ),
+                                        child: Container(
+                                          width: 16,
+                                          height: 16,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF3888D2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
                                       ),
-                                      width: 16,
-                                      height: 16,
-                                    ),
-                                  ),
+                                  ],
+                                ),
                               ],
                             ),
-                          ],
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF3888D2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Icon(
+                                    Icons.map_outlined,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Ver mapa completo',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -755,7 +816,7 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
+      builder: (modalContext) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         maxChildSize: 0.95,
         minChildSize: 0.7,
@@ -779,118 +840,135 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SizedBox(
-                        height: 200,
-                        width: double.infinity,
-                        child: _buildModalImageCarousel(park.images),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: _buildModalImageCarousel(park.images),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        park.name,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : Colors.black,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            park.name,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.white 
-                                  : Colors.black,
-                            ),
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        park.type,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            park.type,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  park.description,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white70 
+                        : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildInfoRow(Icons.location_on, park.address),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.access_time, 'Aberto das ${park.hours}'),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.directions, _calculateDistance(park.lat, park.lng)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      park.description,
+                      '${park.rating} estrelas',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildInfoRow(Icons.location_on, park.address),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.access_time, 'Aberto das ${park.hours}'),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.directions, _calculateDistance(park.lat, park.lng)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${park.rating} estrelas',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white 
-                                : Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Estruturas',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
                         color: Theme.of(context).brightness == Brightness.dark 
                             ? Colors.white 
                             : Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: park.features
-                          .map(
-                            (feature) => Chip(
-                              label: Text(
-                                feature,
-                                style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark 
-                                      ? Colors.black 
-                                      : Colors.black,
-                                ),
-                              ),
-                              backgroundColor: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.grey.shade300 
-                                  : Colors.grey.shade200,
+                  ],
+                ),
+                if (park.addedBy != null)
+                  const SizedBox(height: 8),
+                if (park.addedBy != null)
+                  _buildInfoRow(Icons.person_add, 'Adicionado por: ${park.addedBy}'),
+                const SizedBox(height: 20),
+                Text(
+                  'Estruturas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white 
+                        : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: park.features.map((feature) => 
+                    Chip(
+                      label: Text(
+                        feature,
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      backgroundColor: Colors.grey.shade200,
+                    )
+                  ).toList(),
+                ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RatingScreen(skatepark: park),
                             ),
-                          )
-                          .toList(),
+                          );
+                        },
+                        icon: const Icon(Icons.star_border),
+                        label: const Text('Avaliar Pista'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _openWaze(park.lat, park.lng, park.address),
+                            onPressed: () => _showNavigationOptions(park.lat, park.lng, park.address),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
@@ -904,15 +982,50 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Favoritar'),
+                          child: StatefulBuilder(
+                            builder: (context, setModalState) {
+                              return OutlinedButton(
+                                onPressed: () {
+                                  final parkData = {
+                                    'name': park.name,
+                                    'type': park.type,
+                                    'distance': _calculateDistance(park.lat, park.lng),
+                                    'rating': park.rating,
+                                    'image': park.images.isNotEmpty ? park.images.first : 'assets/images/skateparks/SkateCity.png',
+                                    'address': park.address,
+                                    'hours': park.hours,
+                                  };
+                                  
+                                  if (_favoritesService.isFavorite(park.name)) {
+                                    _favoritesService.removeFromFavorites(park.name);
+                                    ScaffoldMessenger.of(modalContext).showSnackBar(
+                                      const SnackBar(content: Text('Removido dos favoritos')),
+                                    );
+                                  } else {
+                                    if (_favoritesService.addToFavorites(parkData)) {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        const SnackBar(content: Text('Adicionado aos favoritos')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                  setModalState(() {});
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(_favoritesService.isFavorite(park.name) ? 'Remover' : 'Favoritar'),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -1106,17 +1219,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showNavigationOptions(double lat, double lng, [String? address]) {
+    _openGenericNavigation(lat, lng, address);
+  }
+
+
+
   void _openWaze(double lat, double lng, [String? address]) async {
     String wazeUrl;
     String fallbackUrl;
     
     if (address != null && address.isNotEmpty) {
-      // Usa o endereço para navegação mais precisa
       final encodedAddress = Uri.encodeComponent(address);
       wazeUrl = 'waze://?q=$encodedAddress&navigate=yes';
       fallbackUrl = 'https://waze.com/ul?q=$encodedAddress&navigate=yes';
     } else {
-      // Fallback para coordenadas
       wazeUrl = 'waze://?ll=$lat,$lng&navigate=yes';
       fallbackUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
     }
@@ -1128,9 +1245,40 @@ class _HomeScreenState extends State<HomeScreen> {
         await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      // Se falhar, tenta com coordenadas como último recurso
       final coordUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
       await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _openGoogleMaps(double lat, double lng, [String? address]) async {
+    String googleMapsUrl;
+    
+    if (address != null && address.isNotEmpty) {
+      final encodedAddress = Uri.encodeComponent(address);
+      googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+    } else {
+      googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    }
+    
+    try {
+      await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      final coordUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _openGenericNavigation(double lat, double lng, [String? address]) async {
+    String geoUrl = 'geo:$lat,$lng';
+    
+    try {
+      if (await canLaunchUrl(Uri.parse(geoUrl))) {
+        await launchUrl(Uri.parse(geoUrl), mode: LaunchMode.externalApplication);
+      } else {
+        _openGoogleMaps(lat, lng, address);
+      }
+    } catch (e) {
+      _openGoogleMaps(lat, lng, address);
     }
   }
 }

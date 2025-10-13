@@ -157,17 +157,19 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
     });
   }
 
+  void _showNavigationOptions(double lat, double lng, [String? address]) {
+    _openGenericNavigation(lat, lng, address);
+  }
+
   void _openWaze(double lat, double lng, [String? address]) async {
     String wazeUrl;
     String fallbackUrl;
     
     if (address != null && address.isNotEmpty) {
-      // Usa o endereço para navegação mais precisa
       final encodedAddress = Uri.encodeComponent(address);
       wazeUrl = 'waze://?q=$encodedAddress&navigate=yes';
       fallbackUrl = 'https://waze.com/ul?q=$encodedAddress&navigate=yes';
     } else {
-      // Fallback para coordenadas
       wazeUrl = 'waze://?ll=$lat,$lng&navigate=yes';
       fallbackUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
     }
@@ -179,9 +181,40 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
         await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      // Se falhar, tenta com coordenadas como último recurso
       final coordUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
       await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _openGoogleMaps(double lat, double lng, [String? address]) async {
+    String googleMapsUrl;
+    
+    if (address != null && address.isNotEmpty) {
+      final encodedAddress = Uri.encodeComponent(address);
+      googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+    } else {
+      googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    }
+    
+    try {
+      await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      final coordUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _openGenericNavigation(double lat, double lng, [String? address]) async {
+    String geoUrl = 'geo:$lat,$lng';
+    
+    try {
+      if (await canLaunchUrl(Uri.parse(geoUrl))) {
+        await launchUrl(Uri.parse(geoUrl), mode: LaunchMode.externalApplication);
+      } else {
+        _openGoogleMaps(lat, lng, address);
+      }
+    } catch (e) {
+      _openGoogleMaps(lat, lng, address);
     }
   }
 
@@ -440,6 +473,10 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                     ),
                   ],
                 ),
+                if (park.addedBy != null)
+                  const SizedBox(height: 8),
+                if (park.addedBy != null)
+                  _buildInfoRow(Icons.person_add, 'Adicionado por: ${park.addedBy}'),
                 const SizedBox(height: 20),
                 Text(
                   'Estruturas',
@@ -462,7 +499,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                         style: const TextStyle(color: Colors.black),
                       ),
                       backgroundColor: Colors.grey.shade200,
-                    ),
+                    )
                   ).toList(),
                 ),
                     const SizedBox(height: 20),
@@ -492,7 +529,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _openWaze(park.lat, park.lng, park.address),
+                            onPressed: () => _showNavigationOptions(park.lat, park.lng, park.address),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,

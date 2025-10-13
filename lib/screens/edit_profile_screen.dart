@@ -11,7 +11,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController(text: 'Carlos Silva');
   final _usernameController = TextEditingController(text: 'carlosskate');
-  final _bioController = TextEditingController(text: 'Skatista há 5 anos. Especialista em manobras de street.');
 
   @override
   Widget build(BuildContext context) {
@@ -166,45 +165,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ? Colors.white 
                     : Colors.black),
             ),
-            const SizedBox(height: 20),
-            
-            // Campo Bio
-            TextField(
-              controller: _bioController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Bio',
-                prefixIcon: Icon(Icons.edit_outlined, 
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF00294F), width: 2),
-                ),
-                labelStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white.withValues(alpha: 0.1) 
-                    : Colors.grey.shade50,
-                alignLabelWithHint: true,
-              ),
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black),
-            ),
+
             const SizedBox(height: 40),
             
             // Botões

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 class FavoritesService extends ChangeNotifier {
-  static const int maxFavoriteParks = 4;
+  static const int maxFavoriteParks = AppConstants.maxFavoriteParks;
   static FavoritesService? _instance;
   
   factory FavoritesService() {

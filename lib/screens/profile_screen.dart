@@ -14,7 +14,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final Map<String, dynamic> user = {
       'name': 'Carlos Silva',
       'username': '@carlosskate',
-      'bio': 'Skatista há 5 anos. Especialista em manobras de street.',
       'level': 'Intermediário',
       'favoriteSpot': 'Skatepark Central',
       'sessionsCount': 47,
@@ -331,17 +330,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        user['bio'] as String,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : Colors.black,
                         ),
                       ),
                     ],
