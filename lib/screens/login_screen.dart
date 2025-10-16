@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../services/usuario_service.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -141,7 +143,13 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final success = await _authService.login(_emailController.text, _passwordController.text);
+      final usuario = await UsuarioService.login(
+  _emailController.text,
+  _passwordController.text,
+);
+
+final success = usuario != null;
+
       
       setState(() {
         _loading = false;

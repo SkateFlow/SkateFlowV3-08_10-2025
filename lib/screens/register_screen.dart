@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/usuario_service.dart'; // ✅ adicionado
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -31,9 +32,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
-  void _register() {
+  // ✅ ALTERADO: método que chama o backend
+  void _register() async {
     final passwordValidation = _validatePassword(_passwordController.text);
-    
+
     setState(() {
       _nameError = _nameController.text.isEmpty;
       _emailError = _emailController.text.isEmpty;
@@ -47,7 +49,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
         !_emailError &&
         !_passwordError &&
         !_confirmPasswordError) {
-      Navigator.pushReplacementNamed(context, '/loading');
+      
+      // 🔹 Chama o backend do SkateFlow
+      final success = await UsuarioService.cadastrar(
+        _nameController.text,
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      if (success) {
+        // ✅ Sucesso no cadastro
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cadastro realizado com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/loading');
+        }
+      } else {
+        // ❌ Falha no cadastro
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao cadastrar. Tente novamente.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -64,10 +95,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -104,11 +138,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Nome completo',
                               labelStyle: TextStyle(
-                                color: _nameError ? Colors.red : Colors.white70,
+                                color:
+                                    _nameError ? Colors.red : Colors.white70,
                                 fontSize: 14,
                               ),
                               prefixIcon: const Icon(
@@ -119,25 +155,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: _nameError ? Colors.red : Colors.white,
+                                  color:
+                                      _nameError ? Colors.red : Colors.white,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: _nameError ? Colors.red : Colors.white,
+                                  color:
+                                      _nameError ? Colors.red : Colors.white,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: _nameError ? Colors.red : Colors.black,
+                                  color:
+                                      _nameError ? Colors.red : Colors.black,
                                   width: 2,
                                 ),
                               ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
                             ),
                             textCapitalization: TextCapitalization.words,
                             onChanged: (value) {
@@ -151,11 +191,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _emailController,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Email',
                               labelStyle: TextStyle(
-                                color: _emailError ? Colors.red : Colors.white70,
+                                color:
+                                    _emailError ? Colors.red : Colors.white70,
                                 fontSize: 14,
                               ),
                               prefixIcon: const Icon(Icons.email_outlined,
@@ -184,7 +226,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
                               errorText: _emailError &&
                                       _emailController.text.isNotEmpty
                                   ? 'Email inválido'
@@ -202,11 +245,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _passwordController,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Senha',
                               labelStyle: TextStyle(
-                                color: _passwordError ? Colors.red : Colors.white70,
+                                color: _passwordError
+                                    ? Colors.red
+                                    : Colors.white70,
                                 fontSize: 14,
                               ),
                               prefixIcon: const Icon(Icons.lock_outlined,
@@ -216,7 +262,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     _obscurePassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
-                                    color: Colors.white, size: 20),
+                                    color: Colors.white,
+                                    size: 20),
                                 onPressed: () {
                                   setState(() {
                                     _obscurePassword = !_obscurePassword;
@@ -250,10 +297,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              errorText: _passwordError && _passwordErrorMessage != null
-                                  ? _passwordErrorMessage
-                                  : null,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              errorText:
+                                  _passwordError && _passwordErrorMessage != null
+                                      ? _passwordErrorMessage
+                                      : null,
                             ),
                             obscureText: _obscurePassword,
                             onChanged: (value) {
@@ -267,11 +316,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _confirmPasswordController,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Confirmar senha',
                               labelStyle: TextStyle(
-                                color: _confirmPasswordError ? Colors.red : Colors.white70,
+                                color: _confirmPasswordError
+                                    ? Colors.red
+                                    : Colors.white70,
                                 fontSize: 14,
                               ),
                               prefixIcon: const Icon(Icons.lock_outlined,
@@ -318,9 +370,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.1),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
                               errorText: _confirmPasswordError &&
-                                      _confirmPasswordController.text.isNotEmpty
+                                      _confirmPasswordController.text
+                                          .isNotEmpty
                                   ? 'As senhas não coincidem'
                                   : null,
                             ),
@@ -349,7 +403,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: const Text(
                                 'Cadastrar',
                                 style: TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w600),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
