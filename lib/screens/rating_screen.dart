@@ -30,7 +30,7 @@ class _RatingScreenState extends State<RatingScreen> {
     }
 
     // Aqui você salvaria a avaliação
-    final rating = Rating(
+    Rating(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       skateparkId: widget.skatepark.id,
       userId: 'current_user_id', // Substituir pelo ID do usuário atual

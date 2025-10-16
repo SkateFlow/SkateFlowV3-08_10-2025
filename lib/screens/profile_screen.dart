@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'edit_profile_screen.dart';
 import 'help_screen.dart';
 import '../services/favorites_service.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,49 +15,50 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final Map<String, dynamic> user = {
-      'name': 'Carlos Silva',
-      'username': '@carlosskate',
-      'level': 'Intermediário',
-      'favoriteSpot': 'Skatepark Central',
-      'sessionsCount': 47,
-      'totalTime': '120h',
-    };
-
   final FavoritesService _favoritesService = FavoritesService();
-
-  // Lista de acessos recentes
-  final List<Map<String, dynamic>> _recentAccesses = [
-    {
-      'name': 'Skate Park Central',
-      'date': '15/01/2024',
-      'rating': 4.5,
-    },
-    {
-      'name': 'Pista do Ibirapuera',
-      'date': '12/01/2024',
-      'rating': 4.0,
-    },
-    {
-      'name': 'Bowl da Vila Madalena',
-      'date': '10/01/2024',
-      'rating': 5.0,
-    },
-  ];
-
-  int _getRecentAccessesCount() {
-    return _recentAccesses.length;
-  }
+  final AuthService _authService = AuthService();
+  
+  String? _userImage;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
     _favoritesService.addListener(_onFavoritesUpdated);
+    _authService.addListener(_onAuthUpdated);
+    // Simula um usuário logado para demonstração
+    _initializeUser();
+  }
+
+  Future<void> _initializeUser() async {
+    try {
+      if (!_authService.isLoggedIn) {
+        await _authService.simulateLoggedUser();
+      }
+      // Força recarregar dados do banco
+      await _loadUserDataFromDatabase();
+    } catch (e) {
+      _userName = 'Usuário Demo';
+      _userImage = null;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Future<void> _loadUserDataFromDatabase() async {
+    final DatabaseService databaseService = DatabaseService();
+    _userName = await databaseService.getUserName() ?? _authService.currentUserName ?? 'Usuário';
+    _userImage = await databaseService.getUserImage() ?? _authService.currentUserImage;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
     _favoritesService.removeListener(_onFavoritesUpdated);
+    _authService.removeListener(_onAuthUpdated);
     super.dispose();
   }
 
@@ -61,14 +66,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {});
   }
 
-  void _showMaxFavoritesWarning() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
+  void _onAuthUpdated() {
+    if (mounted) {
+      _loadUserDataFromDatabase();
+    }
+  }
+
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Alterar Foto do Perfil',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.blue),
+              title: const Text('Tirar Foto'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.green),
+              title: const Text('Escolher da Galeria'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            if (_userImage != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Remover Foto'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removeImage();
+                },
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        final success = await _authService.updateUserImage(image.path);
+        if (success) {
+          _userImage = _authService.currentUserImage;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Foto alterada com sucesso!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao selecionar foto')),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeImage() async {
+    final success = await _authService.updateUserImage(null);
+    if (success) {
+      _userImage = null;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto removida com sucesso!')),
+      );
+    }
   }
 
   void _showFavoriteParkDetails(BuildContext context, Map<String, dynamic> park) {
@@ -217,46 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showRecentAccessesDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Acessos Recentes'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: _recentAccesses.isEmpty
-                ? const Text('Nenhuma pista visitada recentemente.')
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _recentAccesses.length,
-                    itemBuilder: (context, index) {
-                      final access = _recentAccesses[index];
-                      return ListTile(
-                        leading: const Icon(Icons.skateboarding, color: Colors.green),
-                        title: Text(access['name']),
-                        subtitle: Text('Visitado em: ${access['date']}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                            Text('${access['rating']}'),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fechar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -284,52 +346,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey.shade300,
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.grey,
+                      GestureDetector(
+                        onTap: _showImageOptions,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.grey.shade300,
+                              backgroundImage: _userImage != null
+                                  ? FileImage(File(_userImage!))
+                                  : null,
+                              child: _userImage == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    )
+                                  : null,
                             ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 16,
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        user['name'] as String,
+                        _userName ?? 'Usuário',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).brightness == Brightness.dark 
                               ? Colors.white 
                               : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user['username'] as String,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -344,13 +406,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const EditProfileScreen(),
                           ),
                         );
+                        // Recarrega dados do banco quando voltar
+                        await _loadUserDataFromDatabase();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
@@ -367,25 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 
                 const SizedBox(height: 20),
                 
-                // Profile Info Cards
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () => _showRecentAccessesDialog(context),
-                        child: _buildInfoCard(
-                          Icons.history,
-                          'Acessos Recentes',
-                          '${_getRecentAccessesCount()} pistas visitadas',
-                          Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
+
                 
                 // Favorite Parks Section
                 Padding(
@@ -567,58 +613,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
 
-
-  Widget _buildInfoCard(IconData icon, String title, String subtitle, Color color) {
-    return Builder(
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildMenuOption(IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
     return Builder(

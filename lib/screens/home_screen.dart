@@ -1225,31 +1225,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
-  void _openWaze(double lat, double lng, [String? address]) async {
-    String wazeUrl;
-    String fallbackUrl;
-    
-    if (address != null && address.isNotEmpty) {
-      final encodedAddress = Uri.encodeComponent(address);
-      wazeUrl = 'waze://?q=$encodedAddress&navigate=yes';
-      fallbackUrl = 'https://waze.com/ul?q=$encodedAddress&navigate=yes';
-    } else {
-      wazeUrl = 'waze://?ll=$lat,$lng&navigate=yes';
-      fallbackUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
-    }
-    
-    try {
-      if (await canLaunchUrl(Uri.parse(wazeUrl))) {
-        await launchUrl(Uri.parse(wazeUrl), mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      final coordUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
-      await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
-    }
-  }
-
   void _openGoogleMaps(double lat, double lng, [String? address]) async {
     String googleMapsUrl;
     

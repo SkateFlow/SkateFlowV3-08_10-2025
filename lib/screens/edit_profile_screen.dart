@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'change_photo_screen.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,8 +12,32 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Carlos Silva');
-  final _usernameController = TextEditingController(text: 'carlosskate');
+  final AuthService _authService = AuthService();
+  late final TextEditingController _nameController;
+  String? _userImage;
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final DatabaseService databaseService = DatabaseService();
+    _userName = await databaseService.getUserName() ?? _authService.currentUserName ?? 'Usuário';
+    _userImage = await databaseService.getUserImage() ?? _authService.currentUserImage;
+    _nameController = TextEditingController(text: _userName);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         foregroundColor: Colors.black,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: _saveChanges,
             child: const Text(
               'Salvar',
               style: TextStyle(
@@ -48,28 +73,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 60,
+                  radius: 80,
                   backgroundColor: Colors.grey.shade300,
-                  child: const Icon(
-                    Icons.person,
-                    size: 60,
-                    color: Colors.grey,
-                  ),
+                  backgroundImage: _userImage != null
+                      ? FileImage(File(_userImage!))
+                      : null,
+                  child: _userImage == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 80,
+                          color: Colors.grey,
+                        )
+                      : null,
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChangePhotoScreen(),
-                        ),
-                      );
-                    },
+                    onTap: _showImageOptions,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Color(0xFF00294F), Color(0xFF001426)],
@@ -79,24 +102,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: const Icon(
                         Icons.camera_alt,
                         color: Colors.white,
-                        size: 20,
+                        size: 24,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             
             // Campo Nome
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Nome',
-                prefixIcon: Icon(Icons.person_outlined, 
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
+                prefixIcon: const Icon(Icons.person_outlined, color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey.shade300),
@@ -109,120 +130,82 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFF00294F), width: 2),
                 ),
-                labelStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
                 filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white.withValues(alpha: 0.1) 
-                    : Colors.grey.shade50,
+                fillColor: Colors.grey.shade50,
               ),
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             
-            // Campo Username
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: 'Nome de usuário',
-                prefixIcon: Icon(Icons.alternate_email, 
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
-                prefixText: '@',
-                prefixStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF00294F), width: 2),
-                ),
-                labelStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.grey.shade600),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white.withValues(alpha: 0.1) 
-                    : Colors.grey.shade50,
-              ),
+            // Opções de imagem
+            const Text(
+              'Alterar foto do perfil:',
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-
-            const SizedBox(height: 40),
+            const SizedBox(height: 16),
+            
+            // Botões de opções
+            _buildImageOption(
+              icon: Icons.camera_alt,
+              title: 'Tirar Foto',
+              subtitle: 'Use a câmera do dispositivo',
+              onTap: () => _pickImage(ImageSource.camera),
+            ),
+            const SizedBox(height: 12),
+            _buildImageOption(
+              icon: Icons.photo_library,
+              title: 'Escolher da Galeria',
+              subtitle: 'Selecione uma foto existente',
+              onTap: () => _pickImage(ImageSource.gallery),
+            ),
+            if (_userImage != null) ...[
+              const SizedBox(height: 12),
+              _buildImageOption(
+                icon: Icons.delete,
+                title: 'Remover Foto',
+                subtitle: 'Usar avatar padrão',
+                onTap: _removeImage,
+                isDestructive: true,
+              ),
+            ],
+            const SizedBox(height: 30),
             
             // Botões
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      side: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : Colors.grey.shade600),
+                      side: BorderSide(color: Colors.grey.shade600),
                     ),
                     child: Text(
                       'Cancelar',
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : Colors.grey.shade600),
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00294F), Color(0xFF001426)],
+                  child: ElevatedButton(
+                    onPressed: _saveChanges,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00294F),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Salvar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    child: const Text(
+                      'Salvar',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -230,6 +213,165 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Alterar Foto do Perfil',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.blue),
+              title: const Text('Tirar Foto'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.green),
+              title: const Text('Escolher da Galeria'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            if (_userImage != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Remover Foto'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removeImage();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        // Atualiza localmente primeiro para mostrar na tela
+        final DatabaseService databaseService = DatabaseService();
+        final savedPath = await databaseService.saveUserImage(image.path);
+        
+        setState(() {
+          _userImage = savedPath;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Foto selecionada! Clique em Salvar para confirmar.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao selecionar foto')),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeImage() async {
+    setState(() {
+      _userImage = null;
+    });
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto removida! Clique em Salvar para confirmar.')),
+      );
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    try {
+      // Salva nome se foi alterado
+      if (_nameController.text != _userName) {
+        await _authService.updateUserName(_nameController.text);
+      }
+      
+      // Salva imagem se foi alterada
+      if (_userImage != _authService.currentUserImage) {
+        await _authService.updateUserImage(_userImage);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil atualizado com sucesso!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao salvar alterações')),
+        );
+      }
+    }
+  }
+
+  Widget _buildImageOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isDestructive ? Colors.red : Colors.blue,
+          size: 28,
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isDestructive ? Colors.red : null,
+          ),
+        ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
       ),
     );
   }

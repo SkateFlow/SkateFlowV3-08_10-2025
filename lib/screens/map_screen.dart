@@ -26,6 +26,10 @@ class _MapScreenState extends State<MapScreen> {
   final _authService = AuthService();
   final Set<String> _favorites = <String>{};
   
+  // Cache e debounce
+  List<Skatepark>? _cachedSkateparks;
+  bool _isLoading = false;
+  
   @override
   void initState() {
     super.initState();
@@ -119,28 +123,40 @@ class _MapScreenState extends State<MapScreen> {
   }
   
   void _loadSkateparks() {
-    final skateparks = _skateparkService.getAllSkateparks();
-    final filteredParks = _applyFilters(skateparks);
+    if (_isLoading) return;
     
     setState(() {
-      _markers.clear();
-      for (final park in filteredParks) {
-        _markers.add(
-          Marker(
-            point: LatLng(
-              park.lat,
-              park.lng,
-            ),
-            child: GestureDetector(
-              onTap: () => _showParkDetails(park),
-              child: const Icon(
-                Icons.location_on,
-                color: Color(0xFF00294F),
-                size: 40,
+      _isLoading = true;
+    });
+    
+    // Use cache se disponível
+    final skateparks = _cachedSkateparks ?? _skateparkService.getAllSkateparks();
+    _cachedSkateparks ??= skateparks;
+    
+    final filteredParks = _applyFilters(skateparks);
+    
+    // Debounce para evitar rebuilds frequentes
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _markers.clear();
+          for (final park in filteredParks) {
+            _markers.add(
+              Marker(
+                point: LatLng(park.lat, park.lng),
+                child: GestureDetector(
+                  onTap: () => _showParkDetails(park),
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Color(0xFF00294F),
+                    size: 32, // Reduzido para melhor performance
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
+            );
+          }
+          _isLoading = false;
+        });
       }
     });
   }
@@ -797,31 +813,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _showNavigationOptions(double lat, double lng, [String? address]) {
     _openGenericNavigation(lat, lng, address);
-  }
-
-  void _openWaze(double lat, double lng, [String? address]) async {
-    String wazeUrl;
-    String fallbackUrl;
-    
-    if (address != null && address.isNotEmpty) {
-      final encodedAddress = Uri.encodeComponent(address);
-      wazeUrl = 'waze://?q=$encodedAddress&navigate=yes';
-      fallbackUrl = 'https://waze.com/ul?q=$encodedAddress&navigate=yes';
-    } else {
-      wazeUrl = 'waze://?ll=$lat,$lng&navigate=yes';
-      fallbackUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
-    }
-    
-    try {
-      if (await canLaunchUrl(Uri.parse(wazeUrl))) {
-        await launchUrl(Uri.parse(wazeUrl), mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      final coordUrl = 'https://waze.com/ul?ll=$lat,$lng&navigate=yes';
-      await launchUrl(Uri.parse(coordUrl), mode: LaunchMode.externalApplication);
-    }
   }
 
   void _openGoogleMaps(double lat, double lng, [String? address]) async {

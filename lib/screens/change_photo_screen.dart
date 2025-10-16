@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../services/auth_service.dart';
 
-class ChangePhotoScreen extends StatelessWidget {
+class ChangePhotoScreen extends StatefulWidget {
   const ChangePhotoScreen({super.key});
+
+  @override
+  State<ChangePhotoScreen> createState() => _ChangePhotoScreenState();
+}
+
+class _ChangePhotoScreenState extends State<ChangePhotoScreen> {
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +33,16 @@ class ChangePhotoScreen extends StatelessWidget {
             CircleAvatar(
               radius: 80,
               backgroundColor: Colors.grey.shade300,
-              child: const Icon(
-                Icons.person,
-                size: 80,
-                color: Colors.grey,
-              ),
+              backgroundImage: _authService.currentUserImage != null
+                  ? FileImage(File(_authService.currentUserImage!))
+                  : null,
+              child: _authService.currentUserImage == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.grey,
+                    )
+                  : null,
             ),
             const SizedBox(height: 40),
             
@@ -92,23 +106,37 @@ class ChangePhotoScreen extends StatelessWidget {
     try {
       final XFile? image = await picker.pickImage(source: source);
       if (image != null) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto selecionada com sucesso!')),
-        );
+        await _authService.updateUserImage(image.path);
+        if (mounted) {
+          setState(() {});
+          final navigator = Navigator.of(context);
+          final messenger = ScaffoldMessenger.of(context);
+          navigator.pop();
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Foto alterada com sucesso!')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao selecionar foto')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao selecionar foto')),
+        );
+      }
     }
   }
 
-  void _removePhoto(BuildContext context) {
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Foto removida com sucesso!')),
-    );
+  Future<void> _removePhoto(BuildContext context) async {
+    await _authService.updateUserImage(null);
+    if (mounted) {
+      setState(() {});
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      navigator.pop();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Foto removida com sucesso!')),
+      );
+    }
   }
 
   Widget _buildOption(IconData icon, String title, String subtitle, VoidCallback onTap, {bool isDestructive = false}) {

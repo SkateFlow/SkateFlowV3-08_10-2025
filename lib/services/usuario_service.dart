@@ -87,4 +87,33 @@ class UsuarioService {
       return false;
     }
   }
+
+  // 🔹 Atualizar dados do usuário
+  static Future<bool> atualizarUsuario(int id, String nome, {String? imagemBase64}) async {
+    try {
+      final url = Uri.parse('$baseUrl/update/$id');
+      print('Tentando atualizar usuário ID: $id');
+      
+      final Map<String, dynamic> dados = {
+        'nome': nome,
+      };
+      
+      if (imagemBase64 != null) {
+        dados['imagem'] = imagemBase64;
+      }
+      
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(dados),
+      );
+
+      print('Status da atualização: ${response.statusCode}');
+      
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao atualizar usuário: $e');
+      return false;
+    }
+  }
 }

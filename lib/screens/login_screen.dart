@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/usuario_service.dart';
+import '../services/auth_service.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -97,10 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final success = await UsuarioService.cadastrar(
-        _usernameController.text,
-        _emailController.text, 
-        _passwordController.text
+      final success = await AuthService().register(
+        _emailController.text,
+        _passwordController.text,
+        _usernameController.text
       );
       
       setState(() {
@@ -142,12 +142,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final usuario = await UsuarioService.login(
+      final success = await AuthService().login(
         _emailController.text,
         _passwordController.text,
       );
-
-      final success = usuario != null;
 
       
       setState(() {
@@ -572,14 +570,14 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
-        style: GoogleFonts.lexend(
-          color: const Color(0xFF333333),
+        style: const TextStyle(
+          color: Color(0xFF333333),
           fontSize: 14,
         ),
         decoration: InputDecoration(
           hintText: placeholder,
-          hintStyle: GoogleFonts.lexend(
-            color: const Color(0xFF999999),
+          hintStyle: const TextStyle(
+            color: Color(0xFF999999),
             fontSize: 14,
           ),
           border: InputBorder.none,
@@ -614,14 +612,14 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextField(
         controller: controller,
         obscureText: !showPassword,
-        style: GoogleFonts.lexend(
-          color: const Color(0xFF333333),
+        style: const TextStyle(
+          color: Color(0xFF333333),
           fontSize: 14,
         ),
         decoration: InputDecoration(
           hintText: placeholder,
-          hintStyle: GoogleFonts.lexend(
-            color: const Color(0xFF999999),
+          hintStyle: const TextStyle(
+            color: Color(0xFF999999),
             fontSize: 14,
           ),
           border: InputBorder.none,

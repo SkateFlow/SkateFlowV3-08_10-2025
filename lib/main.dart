@@ -32,14 +32,19 @@ class SkateApp extends StatelessWidget {
         ),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
-        textTheme: GoogleFonts.lexendTextTheme(),
+        textTheme: GoogleFonts.lexendTextTheme().copyWith(
+          // Fallback para fontes do sistema
+          bodyLarge: const TextStyle(fontFamily: 'Roboto'),
+          bodyMedium: const TextStyle(fontFamily: 'Roboto'),
+        ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.grey.shade600,
           foregroundColor: Colors.white,
-          titleTextStyle: GoogleFonts.lexend(
+          titleTextStyle: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
+            fontFamily: 'Roboto', // Fallback
           ),
         ),
       ),
@@ -63,34 +68,43 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _currentIndex;
+  final Map<int, Widget> _screens = {};
   
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    // Carrega apenas a tela inicial
+    _screens[_currentIndex] = _getScreen(_currentIndex);
   }
-  
-  static const List<Widget> _screens = [
-    HomeScreen(),
-    MapScreen(),
-    SkateparksScreen(),
-    EventsScreen(),
-    ProfileScreen(),
-  ];
+
+  Widget _getScreen(int index) {
+    switch (index) {
+      case 0: return const HomeScreen();
+      case 1: return const MapScreen();
+      case 2: return const SkateparksScreen();
+      case 3: return const EventsScreen();
+      case 4: return const ProfileScreen();
+      default: return const HomeScreen();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: _screens[_currentIndex] ?? _getScreen(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          if (index != _currentIndex) {
+            setState(() {
+              _currentIndex = index;
+              // Carrega a tela apenas quando necessário
+              if (!_screens.containsKey(index)) {
+                _screens[index] = _getScreen(index);
+              }
+            });
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,

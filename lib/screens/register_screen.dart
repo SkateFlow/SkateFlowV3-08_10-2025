@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/usuario_service.dart'; // ✅ adicionado
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -47,11 +47,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         !_passwordError &&
         !_confirmPasswordError) {
       
-      // 🔹 Chama o backend do SkateFlow
-      final success = await UsuarioService.cadastrar(
-        _nameController.text,
+      // 🔹 Registra o usuário usando AuthService
+      final success = await AuthService().register(
         _emailController.text,
         _passwordController.text,
+        _nameController.text,
       );
 
       if (success) {

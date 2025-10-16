@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -15,6 +16,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   Future<void> _navigateToMain() async {
+    // Garante que o usuário está logado
+    final authService = AuthService();
+    if (!authService.isLoggedIn) {
+      await authService.simulateLoggedUser();
+    }
+    
     await Future.delayed(const Duration(milliseconds: 1500));
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/main');
