@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/auth_service.dart';
 import '../services/usuario_service.dart';
 
 
@@ -23,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   String _errorMessage = '';
   String _successMessage = '';
-  final _authService = AuthService();
+
 
   void _toggleMode() {
     setState(() {
@@ -98,10 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final success = await _authService.register(
+      final success = await UsuarioService.cadastrar(
+        _usernameController.text,
         _emailController.text, 
-        _passwordController.text, 
-        _usernameController.text
+        _passwordController.text
       );
       
       setState(() {
@@ -144,11 +143,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       final usuario = await UsuarioService.login(
-  _emailController.text,
-  _passwordController.text,
-);
+        _emailController.text,
+        _passwordController.text,
+      );
 
-final success = usuario != null;
+      final success = usuario != null;
 
       
       setState(() {

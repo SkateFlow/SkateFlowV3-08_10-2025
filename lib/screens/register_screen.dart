@@ -26,9 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (password.length < 8) {
       return 'Mínimo 8 caracteres';
     }
-    if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(password)) {
-      return 'Apenas letras e números';
-    }
     return null;
   }
 
