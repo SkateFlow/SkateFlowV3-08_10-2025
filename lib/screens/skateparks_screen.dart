@@ -448,10 +448,8 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                     ),
                   ],
                 ),
-                if (park.addedBy != null)
-                  const SizedBox(height: 8),
-                if (park.addedBy != null)
-                  _buildInfoRow(Icons.person_add, 'Adicionado por: ${park.addedBy}'),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.person_add, park.addedByText),
                 const SizedBox(height: 20),
                 Text(
                   'Estruturas',

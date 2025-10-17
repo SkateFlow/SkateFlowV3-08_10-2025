@@ -19,7 +19,8 @@ class UsuarioService {
 
     if (response.statusCode == 200) {
       List<dynamic> jsonList = json.decode(response.body);
-      List<Usuario> usuarios = jsonList.map((json) => Usuario.fromJson(json)).toList();
+      List<Usuario> usuarios =
+          jsonList.map((json) => Usuario.fromJson(json)).toList();
       return usuarios;
     } else {
       throw Exception('Falha ao carregar usuários');
@@ -32,7 +33,7 @@ class UsuarioService {
       final url = Uri.parse('$baseUrl/login');
       print('Tentando login para: $email');
       print('URL: $url');
-      
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -60,7 +61,7 @@ class UsuarioService {
       final url = Uri.parse('$baseUrl/save');
       print('Tentando cadastrar: $nome - $email');
       print('URL: $url');
-      
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -76,12 +77,7 @@ class UsuarioService {
       print('Status do cadastro: ${response.statusCode}');
       print('Resposta do cadastro: ${response.body}');
 
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        print('Erro ao cadastrar: ${response.body}');
-        return false;
-      }
+      return response.statusCode == 200;
     } catch (e) {
       print('Erro de conexão no cadastro: $e');
       return false;
@@ -89,30 +85,179 @@ class UsuarioService {
   }
 
   // 🔹 Atualizar dados do usuário
-  static Future<bool> atualizarUsuario(int id, String nome, {String? imagemBase64}) async {
+  static Future<bool> atualizarUsuario(int id, String nome,
+      {String? imagemBase64}) async {
     try {
-      final url = Uri.parse('$baseUrl/update/$id');
+      final url = Uri.parse('$baseUrl/atualizar/$id');
       print('Tentando atualizar usuário ID: $id');
-      
-      final Map<String, dynamic> dados = {
-        'nome': nome,
-      };
-      
+
+      var request = http.MultipartRequest('PUT', url);
+      request.fields['nome'] = nome;
+
       if (imagemBase64 != null) {
-        dados['imagem'] = imagemBase64;
+        imagemBase64 =
+            imagemBase64.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+        final bytes = base64Decode(imagemBase64);
+        request.files.add(http.MultipartFile.fromBytes(
+          'foto',
+          bytes,
+          filename: 'profile.jpg',
+        ));
       }
-      
-      final response = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(dados),
-      );
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
 
       print('Status da atualização: ${response.statusCode}');
-      
+      print('Resposta: $responseBody');
+
       return response.statusCode == 200;
     } catch (e) {
       print('Erro ao atualizar usuário: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Salvar foto via Base64
+  static Future<bool> salvarFoto(int id, String fotoBase64) async {
+    try {
+      final url = Uri.parse('$baseUrl/foto/$id');
+      print('Salvando foto para usuário ID: $id');
+      print(
+          'Tamanho da foto Base64 (antes da limpeza): ${fotoBase64.length} caracteres');
+
+      fotoBase64 =
+          fotoBase64.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+
+      print(
+          'Tamanho da foto Base64 (após limpeza): ${fotoBase64.length} caracteres');
+
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'text/plain'},
+        body: fotoBase64,
+      );
+
+      print('Status salvar foto: ${response.statusCode}');
+      print('Resposta: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao salvar foto: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Alterar senha do usuário
+  static Future<bool> alterarSenha(
+      int id, String senhaAtual, String novaSenha) async {
+    try {
+      final url = Uri.parse('$baseUrl/alterarSenha/$id');
+      print('Alterando senha para usuário ID: $id');
+
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'senhaAtual': senhaAtual, 'novaSenha': novaSenha}),
+      );
+
+      print('Status alterar senha: ${response.statusCode}');
+      print('Resposta: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao alterar senha: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Esqueceu a senha - enviar código
+  static Future<bool> esqueceuSenha(String email) async {
+    try {
+      final url = Uri.parse('$baseUrl/esqueceuSenha');
+      print('Enviando código para: $email');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      print('Status esqueceu senha: ${response.statusCode}');
+      print('Resposta: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao enviar código: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Validar código de recuperação
+  static Future<bool> validarCodigo(String email, String codigo) async {
+    try {
+      final url = Uri.parse('$baseUrl/validarCodigo');
+      print('Validando código para: $email');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'codigo': codigo}),
+      );
+
+      print('Status validar código: ${response.statusCode}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao validar código: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Redefinir senha com código
+  static Future<bool> redefinirSenha(
+      String email, String codigo, String novaSenha) async {
+    try {
+      final url = Uri.parse('$baseUrl/redefinirSenha');
+      print('Redefinindo senha para: $email');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body:
+            jsonEncode({'email': email, 'codigo': codigo, 'novaSenha': novaSenha}),
+      );
+
+      print('Status redefinir senha: ${response.statusCode}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao redefinir senha: $e');
+      return false;
+    }
+  }
+
+  // 🔹 Excluir conta com validação de senha (CORRIGIDO)
+  static Future<bool> excluirConta(int id, String senha) async {
+    try {
+      final url = Uri.parse('$baseUrl/excluirConta/$id');
+      print('Excluindo conta do usuário ID: $id');
+      print('Senha enviada (protegida): ${'*' * senha.length}');
+
+      // 🔧 Usando Request para enviar body em DELETE
+      final request = http.Request('DELETE', url)
+        ..headers['Content-Type'] = 'application/json'
+        ..body = jsonEncode({'senha': senha});
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Status excluir conta: ${response.statusCode}');
+      print('Resposta excluir conta: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erro ao excluir conta: $e');
       return false;
     }
   }

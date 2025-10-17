@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
-
+import '../services/usuario_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   String _errorMessage = '';
   String _successMessage = '';
-
 
   void _toggleMode() {
     setState(() {
@@ -147,7 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
-      
       setState(() {
         _loading = false;
       });
@@ -174,131 +172,322 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog() {
-    final emailController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.lock_reset,
-                  size: 60,
-                  color: Color(0xFF043C70),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Esqueceu a senha?',
-                  style: GoogleFonts.lexend(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF333333),
+  final emailController = TextEditingController();
+  final codeController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  
+  // Variáveis de controle do dialog
+  bool codeSent = false;
+  bool codeValidated = false;
+  bool isLoading = false;
+  bool obscureNewPassword = true;
+  bool obscureConfirmPassword = true;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+
+          // Função para retornar o widget de conteúdo correto
+          Widget content() {
+            if (!codeSent) {
+              return TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                style: GoogleFonts.lexend(),
+                decoration: InputDecoration(
+                  hintText: 'Digite seu email',
+                  hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Digite seu email para receber as instruções de redefinição',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.lexend(
-                    fontSize: 14,
-                    color: const Color(0xFF666666),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF666666)),
                 ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  style: GoogleFonts.lexend(),
-                  decoration: InputDecoration(
-                    hintText: 'Digite seu email',
-                    hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF666666)),
+              );
+            } else if (!codeValidated) {
+              return TextField(
+                controller: codeController,
+                keyboardType: TextInputType.number,
+                maxLength: 5,
+                style: GoogleFonts.lexend(),
+                decoration: InputDecoration(
+                  hintText: 'Código de 5 dígitos',
+                  hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  prefixIcon: const Icon(Icons.security, color: Color(0xFF666666)),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          emailController.dispose();
-                          Navigator.of(dialogContext).pop();
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                          'Cancelar',
-                          style: GoogleFonts.lexend(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF666666),
-                          ),
-                        ),
+              );
+            } else {
+              return Column(
+                children: [
+                  TextField(
+                    controller: newPasswordController,
+                    obscureText: obscureNewPassword,
+                    style: GoogleFonts.lexend(),
+                    decoration: InputDecoration(
+                      hintText: 'Nova senha',
+                      hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF666666)),
+                      suffixIcon: IconButton(
+                        icon: Icon(obscureNewPassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => obscureNewPassword = !obscureNewPassword),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (emailController.text.isNotEmpty) {
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: confirmPasswordController,
+                    obscureText: obscureConfirmPassword,
+                    style: GoogleFonts.lexend(),
+                    decoration: InputDecoration(
+                      hintText: 'Confirmar nova senha',
+                      hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF043C70), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF666666)),
+                      suffixIcon: IconButton(
+                        icon: Icon(obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => obscureConfirmPassword = !obscureConfirmPassword),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          }
+
+          // Função para retornar título do dialog
+          String getTitle() {
+            if (codeValidated) return 'Nova senha';
+            if (codeSent) return 'Digite o código';
+            return 'Esqueceu a senha?';
+          }
+
+          // Função para retornar subtítulo do dialog
+          String getSubtitle() {
+            if (codeValidated) return 'Digite sua nova senha';
+            if (codeSent) return 'Digite o código de 5 dígitos enviado para ${emailController.text}';
+            return 'Digite seu email para receber o código de verificação';
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.lock_reset,
+                    size: 60,
+                    color: Color(0xFF043C70),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(getTitle(),
+                      style: GoogleFonts.lexend(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF333333),
+                      )),
+                  const SizedBox(height: 8),
+                  Text(
+                    getSubtitle(),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      color: const Color(0xFF666666),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  content(),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
                             emailController.dispose();
+                            codeController.dispose();
+                            newPasswordController.dispose();
+                            confirmPasswordController.dispose();
                             Navigator.of(dialogContext).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Email de redefinição de senha enviado com sucesso!',
-                                  style: GoogleFonts.lexend(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.green,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF043C70),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Enviar',
-                          style: GoogleFonts.lexend(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            'Cancelar',
+                            style: GoogleFonts.lexend(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF666666),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : () async {
+                            if (!codeSent) {
+                              if (emailController.text.isEmpty || !emailController.text.contains('@')) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Digite um email válido')),
+                                );
+                                return;
+                              }
+
+                              setState(() => isLoading = true);
+                              final success = await UsuarioService.esqueceuSenha(emailController.text);
+                              setState(() => isLoading = false);
+
+                              if (success) {
+                                setState(() => codeSent = true);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Email não encontrado')),
+                                );
+                              }
+                            } else if (!codeValidated) {
+                              if (codeController.text.length != 5) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Digite o código de 5 dígitos')),
+                                );
+                                return;
+                              }
+
+                              setState(() => isLoading = true);
+                              final success = await UsuarioService.validarCodigo(
+                                emailController.text,
+                                codeController.text,
+                              );
+                              setState(() => isLoading = false);
+
+                              if (success) {
+                                setState(() => codeValidated = true);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Código inválido')),
+                                );
+                              }
+                            } else {
+                              if (newPasswordController.text.length < 8) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Senha deve ter pelo menos 8 caracteres')),
+                                );
+                                return;
+                              }
+
+                              if (newPasswordController.text != confirmPasswordController.text) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Senhas não coincidem')),
+                                );
+                                return;
+                              }
+
+                              final success = await UsuarioService.redefinirSenha(
+                                emailController.text,
+                                codeController.text,
+                                newPasswordController.text,
+                              );
+
+                              if (success) {
+                                Navigator.of(dialogContext).pop();
+                                emailController.dispose();
+                                codeController.dispose();
+                                newPasswordController.dispose();
+                                confirmPasswordController.dispose();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Senha redefinida com sucesso!',
+                                        style: GoogleFonts.lexend(color: Colors.white),
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Erro ao redefinir senha')),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF043C70),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Text(
+                                  codeValidated ? 'Redefinir' : (codeSent ? 'Validar' : 'Enviar'),
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -390,14 +579,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             _buildInputField(
                               controller: _usernameController,
                               placeholder: 'Nome de usuário',
-                              icon: Icons.person_outline,
                             ),
                             const SizedBox(height: 12),
                           ],
                           _buildInputField(
                             controller: _emailController,
                             placeholder: 'Email',
-                            icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                           ),
                           const SizedBox(height: 12),
@@ -555,7 +742,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildInputField({
     required TextEditingController controller,
     required String placeholder,
-    required IconData icon,
     TextInputType? keyboardType,
   }) {
     return Container(

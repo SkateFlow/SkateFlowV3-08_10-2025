@@ -11,6 +11,8 @@ class Skatepark {
   final String description;
   final List<String> images;
   final String? addedBy;
+  final String? usuarioNome;
+  final String? usuarioNivelAcesso;
 
   Skatepark({
     required this.id,
@@ -25,7 +27,16 @@ class Skatepark {
     required this.description,
     required this.images,
     this.addedBy,
+    this.usuarioNome,
+    this.usuarioNivelAcesso,
   });
+
+  String get addedByText {
+    if (usuarioNome == null || usuarioNivelAcesso == 'ADMIN') {
+      return 'Adicionado por: SkateFlow';
+    }
+    return 'Adicionado por: $usuarioNome';
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -41,6 +52,8 @@ class Skatepark {
       'description': description,
       'images': images,
       'addedBy': addedBy,
+      'usuarioNome': usuarioNome,
+      'usuarioNivelAcesso': usuarioNivelAcesso,
     };
   }
 
@@ -58,6 +71,8 @@ class Skatepark {
       description: json['description'],
       images: List<String>.from(json['images']),
       addedBy: json['addedBy'],
+      usuarioNome: json['usuarioNome'],
+      usuarioNivelAcesso: json['usuarioNivelAcesso'],
     );
   }
 
@@ -74,6 +89,8 @@ class Skatepark {
     String? description,
     List<String>? images,
     String? addedBy,
+    String? usuarioNome,
+    String? usuarioNivelAcesso,
   }) {
     return Skatepark(
       id: id ?? this.id,
@@ -88,6 +105,8 @@ class Skatepark {
       description: description ?? this.description,
       images: images ?? this.images,
       addedBy: addedBy ?? this.addedBy,
+      usuarioNome: usuarioNome ?? this.usuarioNome,
+      usuarioNivelAcesso: usuarioNivelAcesso ?? this.usuarioNivelAcesso,
     );
   }
 }

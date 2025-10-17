@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import '../services/usuario_service.dart';
 
 class ManageAccountScreen extends StatelessWidget {
   const ManageAccountScreen({super.key});
@@ -19,69 +21,7 @@ class ManageAccountScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Informações da Conta
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00294F), Color(0xFF043C70)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.center,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Carlos Silva',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'carlos.silva@email.com',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Conta Ativa',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Seção Segurança
             const Text(
@@ -104,29 +44,6 @@ class ManageAccountScreen extends StatelessWidget {
                     builder: (context) => const ChangePasswordScreen(),
                   ),
                 );
-              },
-            ),
-
-            _buildOptionCard(
-              Icons.email_outlined,
-              'Alterar Email',
-              'Modifique o email associado à sua conta',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangeEmailScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildOptionCard(
-              Icons.security,
-              'Verificação em Duas Etapas',
-              'Adicione uma camada extra de segurança',
-              () {
-                _showTwoFactorDialog(context);
               },
             ),
 
@@ -226,201 +143,131 @@ class ManageAccountScreen extends StatelessWidget {
     );
   }
 
-
-
-  void _showTwoFactorDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Verificação em Duas Etapas'),
-        content: const Text(
-            'Esta funcionalidade será implementada com o banco de dados.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Entendi'),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-
   void _showDeleteAccountDialog(BuildContext context) {
+    final passwordController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Excluir Conta'),
-        content: const Text(
-            'Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text(
-                        'Exclusão de conta será implementada com o banco de dados')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        bool obscurePassword = true;
+        bool isLoading = false;
 
-class ChangeEmailScreen extends StatefulWidget {
-  const ChangeEmailScreen({super.key});
-
-  @override
-  State<ChangeEmailScreen> createState() => _ChangeEmailScreenState();
-}
-
-class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
-  final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Alterar Email',
-          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00294F).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: const Color.fromARGB(255, 7, 48, 87)
-                          .withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: Color(0xFF00294F)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Você receberá um email de confirmação no novo endereço antes da alteração ser efetivada.',
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white70
-                              : const Color.fromARGB(255, 7, 48, 87),
-                          fontSize: 14,
-                        ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.red.shade700),
+                  const SizedBox(width: 8),
+                  const Text('Excluir Conta'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Digite sua senha atual para confirmar:'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Senha Atual',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        onPressed: () =>
+                            setState(() => obscurePassword = !obscurePassword),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Email Atual',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  enabled: false,
+              actions: [
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.pop(dialogContext);
+                          passwordController.clear(); // Corrigido: não dispose()
+                        },
+                  child: const Text('Cancelar'),
                 ),
-                initialValue: 'carlos.silva@email.com',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Novo Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (passwordController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Digite sua senha')),
+                            );
+                            return;
+                          }
+
+                          setState(() => isLoading = true);
+                          final userId = AuthService().currentUserId;
+                          if (userId != null) {
+                            final success = await UsuarioService.excluirConta(
+                              int.parse(userId),
+                              passwordController.text.trim(),
+                            );
+
+                            if (success) {
+                              Navigator.pop(dialogContext);
+                              await AuthService().logout();
+                              passwordController.clear();
+                              if (context.mounted) {
+                                Navigator.of(context)
+                                    .pushNamedAndRemoveUntil('/register', (r) => false);
+                              }
+                            } else {
+                              setState(() => isLoading = false);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Senha incorreta'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          } else {
+                            setState(() => isLoading = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Usuário não autenticado'),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text('Excluir Conta'),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Digite o novo email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Digite um email válido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Senha Atual',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Digite sua senha atual';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Email será alterado após implementação do banco de dados')),
-                      );
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00294F),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Alterar Email',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -434,9 +281,13 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -485,6 +336,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: 24),
               TextFormField(
+                controller: _currentPasswordController,
                 obscureText: _obscureCurrentPassword,
                 decoration: InputDecoration(
                   labelText: 'Senha Atual',
@@ -511,6 +363,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _newPasswordController,
                 obscureText: _obscureNewPassword,
                 decoration: InputDecoration(
                   labelText: 'Nova Senha',
@@ -535,11 +388,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   if (value.length < 8) {
                     return 'A senha deve ter pelo menos 8 caracteres';
                   }
+                  if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
+                      .hasMatch(value)) {
+                    return 'Senha deve ter: maiúscula, minúscula e número';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: 'Confirmar Nova Senha',
@@ -561,6 +419,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Confirme sua nova senha';
                   }
+                  if (value != _newPasswordController.text) {
+                    return 'As senhas não coincidem';
+                  }
                   return null;
                 },
               ),
@@ -568,16 +429,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Senha será alterada após implementação do banco de dados')),
-                      );
-                      Navigator.pop(context);
-                    }
-                  },
+                  onPressed: _isLoading ? null : _changePassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00294F),
                     foregroundColor: Colors.white,
@@ -586,10 +438,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Alterar Senha',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Alterar Senha',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
             ],
@@ -597,5 +460,60 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _changePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authService = AuthService();
+
+      print('Tela: Iniciando alteração de senha');
+      print('Tela: Usuário logado: ${authService.isLoggedIn}');
+      print('Tela: ID do usuário: ${authService.currentUserId}');
+
+      final success = await authService.changePassword(
+        _currentPasswordController.text,
+        _newPasswordController.text,
+      );
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Senha alterada com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content:
+                  Text('Senha atual incorreta ou erro no servidor'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }

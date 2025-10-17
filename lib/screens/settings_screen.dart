@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_screen.dart' as edit;
-import 'change_photo_screen.dart' as photo;
 import 'notifications_settings_screen.dart';
 import 'sound_vibration_settings_screen.dart';
 import 'help_screen.dart';
@@ -34,8 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSection('Perfil', [
             _buildTile(Icons.edit, 'Informações Pessoais',
                 () => _navigateTo(context, '/edit-profile')),
-            _buildTile(Icons.camera_alt, 'Alterar Foto de Perfil',
-                () => _navigateTo(context, '/change-photo')),
+
           ]),
           _buildSection('App', [
             _buildTile(Icons.notifications, 'Notificações',
@@ -138,8 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     switch (route) {
       case '/edit-profile':
         return const edit.EditProfileScreen();
-      case '/change-photo':
-        return const photo.ChangePhotoScreen();
+
       case '/notifications':
         return const NotificationsSettingsScreen();
       case '/sound':

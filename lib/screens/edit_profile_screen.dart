@@ -50,18 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        actions: [
-          TextButton(
-            onPressed: _saveChanges,
-            child: const Text(
-              'Salvar',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+
       ),
       body: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -89,21 +78,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: GestureDetector(
-                    onTap: _showImageOptions,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF00294F), Color(0xFF001426)],
-                        ),
-                        shape: BoxShape.circle,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF00294F), Color(0xFF001426)],
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
                 ),
@@ -217,64 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _showImageOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Alterar Foto do Perfil',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('Tirar Foto'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.green),
-              title: const Text('Escolher da Galeria'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            if (_userImage != null)
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Remover Foto'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _removeImage();
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
@@ -310,6 +239,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _removeImage() async {
+    final DatabaseService databaseService = DatabaseService();
+    await databaseService.removeUserImage();
+    
     setState(() {
       _userImage = null;
     });
@@ -328,10 +260,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await _authService.updateUserName(_nameController.text);
       }
       
-      // Salva imagem se foi alterada
-      if (_userImage != _authService.currentUserImage) {
-        await _authService.updateUserImage(_userImage);
-      }
+      // Sempre atualiza a imagem para sincronizar com o backend
+      await _authService.updateUserImage(_userImage);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

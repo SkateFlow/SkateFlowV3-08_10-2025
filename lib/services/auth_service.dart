@@ -137,37 +137,53 @@ class AuthService {
 
   // Atualiza a imagem do usuário
   Future<bool> updateUserImage(String? imagePath) async {
+    print('AuthService: updateUserImage chamado com imagePath: $imagePath');
+    print('AuthService: currentUserId: $_currentUserId');
+    
     if (_currentUserId != null) {
       try {
         final DatabaseService databaseService = DatabaseService();
         
         if (imagePath != null) {
+          print('AuthService: Processando nova imagem');
           // Converte imagem para base64
           final File imageFile = File(imagePath);
           final List<int> imageBytes = await imageFile.readAsBytes();
           final String base64Image = base64Encode(imageBytes);
+          print('AuthService: Imagem convertida para Base64, tamanho: ${base64Image.length}');
+          
+          // Verifica se o userId é válido (não é 'user_demo')
+          if (_currentUserId == 'user_demo') {
+            print('AuthService: Usuário demo detectado, salvando apenas localmente');
+            final savedPath = await databaseService.saveUserImage(imagePath);
+            _currentUserImage = savedPath;
+            _notifyListeners();
+            return true;
+          }
           
           // Envia para backend
           final int userId = int.parse(_currentUserId!);
-          final success = await UsuarioService.atualizarUsuario(
-            userId, 
-            _currentUserName ?? '', 
-            imagemBase64: base64Image
-          );
+          print('AuthService: Enviando para backend, userId: $userId');
+          final success = await UsuarioService.salvarFoto(userId, base64Image);
+          print('AuthService: Resultado do backend: $success');
           
           if (success) {
             // Salva localmente para cache
             final savedPath = await databaseService.saveUserImage(imagePath);
             _currentUserImage = savedPath;
           } else {
+            print('AuthService: Falha no backend, salvando apenas localmente');
             // Se falhou no backend, ainda salva localmente
             final savedPath = await databaseService.saveUserImage(imagePath);
             _currentUserImage = savedPath;
           }
         } else {
-          // Remove imagem
-          final int userId = int.parse(_currentUserId!);
-          await UsuarioService.atualizarUsuario(userId, _currentUserName ?? '');
+          print('AuthService: Removendo imagem');
+          // Remove imagem - envia string vazia para o backend
+          if (_currentUserId != 'user_demo') {
+            final int userId = int.parse(_currentUserId!);
+            await UsuarioService.salvarFoto(userId, '');
+          }
           await databaseService.removeUserImage();
           _currentUserImage = null;
         }
@@ -175,8 +191,31 @@ class AuthService {
         _notifyListeners();
         return true;
       } catch (e) {
-        print('Erro ao atualizar imagem: $e');
+        print('AuthService: Erro ao atualizar imagem: $e');
       }
+    } else {
+      print('AuthService: currentUserId é null');
+    }
+    return false;
+  }
+
+  // Alterar senha do usuário
+  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    print('AuthService: changePassword chamado');
+    print('AuthService: currentUserId: $_currentUserId');
+    
+    if (_currentUserId != null && _currentUserId != 'user_demo') {
+      try {
+        final int userId = int.parse(_currentUserId!);
+        print('AuthService: Chamando UsuarioService.alterarSenha com userId: $userId');
+        final result = await UsuarioService.alterarSenha(userId, currentPassword, newPassword);
+        print('AuthService: Resultado da alteração: $result');
+        return result;
+      } catch (e) {
+        print('AuthService: Erro ao alterar senha: $e');
+      }
+    } else {
+      print('AuthService: Usuário não logado ou é demo');
     }
     return false;
   }
