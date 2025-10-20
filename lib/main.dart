@@ -10,6 +10,7 @@ import 'screens/skateparks_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/sync_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,13 +70,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   late int _currentIndex;
   final Map<int, Widget> _screens = {};
+  final SyncService _syncService = SyncService();
   
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    // Carrega apenas a tela inicial
     _screens[_currentIndex] = _getScreen(_currentIndex);
+    _syncService.startSync();
+  }
+
+  @override
+  void dispose() {
+    _syncService.stopSync();
+    super.dispose();
   }
 
   Widget _getScreen(int index) {

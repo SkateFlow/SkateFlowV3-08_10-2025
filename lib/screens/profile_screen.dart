@@ -1,11 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'edit_profile_screen.dart';
 import 'help_screen.dart';
 import '../services/favorites_service.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
+import '../services/skatepark_service.dart';
+import '../models/skatepark.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,9 +21,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final FavoritesService _favoritesService = FavoritesService();
   final AuthService _authService = AuthService();
+  final SkateparkService _skateparkService = SkateparkService();
   
   String? _userImage;
   String? _userName;
+  List<Skatepark> _favoriteSkateparks = [];
+  Position? _currentPosition;
 
   @override
   void initState() {
@@ -35,8 +42,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!_authService.isLoggedIn) {
         await _authService.simulateLoggedUser();
       }
-      // Força recarregar dados do banco
       await _loadUserDataFromDatabase();
+      await _favoritesService.carregarFavoritos();
+      _loadFavoriteSkateparks();
+      _getCurrentLocation();
     } catch (e) {
       _userName = 'Usuário Demo';
       _userImage = null;
@@ -44,6 +53,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {});
       }
     }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission != LocationPermission.denied) {
+        _currentPosition = await Geolocator.getCurrentPosition();
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      // Ignora erro de localização
+    }
+  }
+
+  String _calculateDistance(double lat, double lng) {
+    if (_currentPosition == null) return '-- km';
+    double distance = Geolocator.distanceBetween(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+      lat,
+      lng,
+    ) / 1000;
+    return '${distance.toStringAsFixed(1)} km';
   }
 
   Future<void> _loadUserDataFromDatabase() async {
@@ -63,7 +98,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _onFavoritesUpdated() {
-    setState(() {});
+    _loadFavoriteSkateparks();
+  }
+
+  void _loadFavoriteSkateparks() {
+    final allParks = _skateparkService.getAllSkateparks();
+    setState(() {
+      _favoriteSkateparks = allParks.where((park) => _favoritesService.isFavorite(park.id)).take(4).toList();
+    });
   }
 
   void _onAuthUpdated() {
@@ -172,151 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _showFavoriteParkDetails(BuildContext context, Map<String, dynamic> park) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(park['image'] as String),
-                    fit: BoxFit.cover,
-                    onError: (error, stackTrace) {},
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    park['name'] as String,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Colors.black,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    park['type'] as String,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    park['address'] as String? ?? 'Endereço não disponível',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(
-                  'Aberto das ${park['hours'] as String? ?? '6h às 22h'}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const Spacer(),
-                const Icon(Icons.star, color: Colors.amber, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '${park['rating']}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  park['distance'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _favoritesService.removeFromFavorites(park['name'] as String);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Removido dos favoritos')),
-                  );
-                },
-                icon: const Icon(Icons.favorite),
-                label: const Text('Remover dos Favoritos'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
 
 
@@ -433,6 +331,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 
 
                 
+                const SizedBox(height: 20),
+
                 // Favorite Parks Section
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -452,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const Spacer(),
                       Text(
-                        '${_favoritesService.favoriteParks.length}/${FavoritesService.maxFavoriteParks}',
+                        '${_favoritesService.favoritesCount}/${FavoritesService.maxFavoriteParks}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -463,95 +363,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _favoritesService.favoriteParks.isNotEmpty
-                    ? SizedBox(
-                        height: 120,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: _favoritesService.favoriteParks.length,
-                          physics: const BouncingScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final park = _favoritesService.favoriteParks[index];
-                            return GestureDetector(
-                              onTap: () => _showFavoriteParkDetails(context, park),
-                              child: Container(
-                                width: 200,
-                                margin: const EdgeInsets.only(right: 12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  image: DecorationImage(
-                                    image: AssetImage(park['image'] as String),
-                                    fit: BoxFit.cover,
-                                    onError: (error, stackTrace) {},
-                                  ),
-                                ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.transparent,
-                                        Colors.black.withValues(alpha: 0.7),
-                                      ],
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        park['name'] as String,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              park['type'] as String,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          const Icon(Icons.star, color: Colors.amber, size: 12),
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            park['rating'].toString(),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    : Container(
+                _favoriteSkateparks.isEmpty
+                    ? Container(
                         height: 120,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
@@ -579,6 +392,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ],
                           ),
+                        ),
+                      )
+                    : SizedBox(
+                        height: 140,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _favoriteSkateparks.length,
+                          itemBuilder: (context, index) {
+                            final park = _favoriteSkateparks[index];
+                            return GestureDetector(
+                              onTap: () => _showFavoriteParkDetails(park),
+                              child: Container(
+                                width: 240,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+                                      child: _buildImage(park.images[0], 140, 120),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              park.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.star, size: 14, color: Colors.amber),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  park.rating.toStringAsFixed(1),
+                                                  style: const TextStyle(fontSize: 12),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black87,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                park.type,
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                 const SizedBox(height: 30),
@@ -613,6 +502,144 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
 
+
+  void _showFavoriteParkDetails(Skatepark park) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalContext) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: _buildImage(park.images[0], 150, double.infinity),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    park.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    park.type,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    park.address,
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.directions, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  _calculateDistance(park.lat, park.lng),
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  '${park.rating.toStringAsFixed(1)} estrelas',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.person_add, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  park.addedByText,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final sucesso = await _favoritesService.removeFromFavorites(park.id);
+                  if (sucesso) {
+                    Navigator.pop(modalContext);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Removido dos favoritos')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.favorite),
+                label: const Text('Remover dos Favoritos'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage(String imagePath, double height, double width) {
+    if (imagePath.startsWith('data:image')) {
+      try {
+        final base64String = imagePath.split(',')[1];
+        final bytes = base64Decode(base64String);
+        return Image.memory(bytes, height: height, width: width, fit: BoxFit.cover);
+      } catch (e) {
+        return Container(height: height, width: width, color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 40));
+      }
+    }
+    return Image.asset(imagePath, height: height, width: width, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(height: height, width: width, color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 40)));
+  }
 
   Widget _buildMenuOption(IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
     return Builder(

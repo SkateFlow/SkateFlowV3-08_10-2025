@@ -255,12 +255,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveChanges() async {
     try {
-      // Salva nome se foi alterado
+      if (_nameController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nome não pode estar vazio')),
+        );
+        return;
+      }
+
       if (_nameController.text != _userName) {
-        await _authService.updateUserName(_nameController.text);
+        final success = await _authService.updateUserName(_nameController.text);
+        if (!success) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Este nome de usuário já está em uso'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
       }
       
-      // Sempre atualiza a imagem para sincronizar com o backend
       await _authService.updateUserImage(_userImage);
       
       if (mounted) {

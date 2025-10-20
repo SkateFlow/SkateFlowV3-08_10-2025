@@ -1,64 +1,13 @@
 import '../models/skatepark.dart';
+import 'lugar_service.dart';
 
 class SkateparkService {
   static final SkateparkService _instance = SkateparkService._internal();
   factory SkateparkService() => _instance;
   SkateparkService._internal();
 
-  // Lista de pistas (futuramente será substituída por chamadas ao banco de dados)
-  final List<Skatepark> _skateparks = [
-    Skatepark(
-      id: '1',
-      name: 'Skate City',
-      type: 'Street',
-      lat: -23.5329,
-      lng: -46.6395,
-      rating: 4.5,
-      address: 'Rua Jaraguá, 627 - Bom Retiro, SP',
-      hours: '8h às 22h',
-      features: ['Bowl', 'Street', 'Half-pipe', 'Corrimão'],
-      description: 'Pista completa no centro da cidade com estruturas variadas para todos os níveis.',
-      images: [
-        'assets/images/skateparks/SkateCity.png',
-        'assets/images/skateparks/SkateCity2.png'
-      ],
-      addedBy: 'João Silva',
-    ),
-    Skatepark(
-      id: '2',
-      name: 'Pista do Ibirapuera',
-      type: 'Bowl',
-      lat: -23.5873,
-      lng: -46.6573,
-      rating: 4.8,
-      address: 'Parque Ibirapuera - Vila Mariana, SP',
-      hours: '6h às 20h',
-      features: ['Bowl', 'Mini Ramp'],
-      description: 'Bowl clássico perfeito para manobras aéreas e transições suaves.',
-      images: [
-        'assets/images/skateparks/Rajas1.png',
-        'assets/images/skateparks/Rajas2.png'
-      ],
-      addedBy: 'Maria Santos',
-    ),
-    Skatepark(
-      id: '3',
-      name: 'Quadespra',
-      type: 'Plaza',
-      lat: -23.5200,
-      lng: -46.6094,
-      rating: 4.2,
-      address: 'Rua Lacônia, 266 - Vila Alexandria, São Paulo - SP',
-      hours: '7h às 18h',
-      features: ['Plaza', 'Street', 'Escadas'],
-      description: 'Plaza urbana com obstáculos técnicos para street skating avançado.',
-      images: [
-        'assets/images/skateparks/image2.png',
-        'assets/images/skateparks/image9.png'
-      ],
-      addedBy: 'Pedro Costa',
-    ),
-  ];
+  // Lista de pistas (carregadas do backend)
+  final List<Skatepark> _skateparks = [];
 
   // Callbacks para notificar mudanças
   final List<Function()> _listeners = [];
@@ -136,11 +85,56 @@ class SkateparkService {
     await Future.delayed(const Duration(seconds: 2));
   }
 
-  // Método para buscar dados do servidor (futuro)
+  // Buscar pistas do backend
   Future<void> fetchFromServer() async {
-    // Aqui será implementada a busca de dados do servidor
-    // Por enquanto, apenas simula uma operação
-    await Future.delayed(const Duration(seconds: 1));
-    _notifyListeners();
+    try {
+      final lugares = await LugarService.buscarPistas();
+      
+      // Limpar pistas antigas
+      _skateparks.clear();
+      
+      // Converter lugares para skateparks
+      for (final lugar in lugares) {
+        // Apenas pistas ativadas
+        if (lugar['statusPista'] != 'ativada') continue;
+        
+        // Buscar fotos do backend
+        List<String> images = [];
+        if (lugar['foto1'] != null) {
+          images.add('data:image/jpeg;base64,${lugar['foto1']}');
+        }
+        if (lugar['foto2'] != null) {
+          images.add('data:image/jpeg;base64,${lugar['foto2']}');
+        }
+        if (lugar['foto3'] != null) {
+          images.add('data:image/jpeg;base64,${lugar['foto3']}');
+        }
+
+        
+        // Buscar rating médio
+        final rating = await LugarService.buscarRatingMedio(lugar['id']);
+        
+        final skatepark = Skatepark(
+          id: lugar['id'].toString(),
+          name: lugar['nome'] ?? 'Sem nome',
+          type: lugar['categoria']?['nome'] ?? 'Street',
+          lat: double.tryParse(lugar['latitude'] ?? '0') ?? 0.0,
+          lng: double.tryParse(lugar['longitude'] ?? '0') ?? 0.0,
+          rating: rating,
+          address: '${lugar['rua'] ?? ''}, ${lugar['numero'] ?? ''} - ${lugar['bairro'] ?? ''}',
+          features: [lugar['categoria']?['nome'] ?? 'Street'],
+          description: lugar['descricao'] ?? 'Sem descrição',
+          images: images,
+          usuarioNome: lugar['usuario']?['nome'],
+          usuarioNivelAcesso: lugar['usuario']?['nivelAcesso'],
+        );
+        
+        _skateparks.add(skatepark);
+      }
+      
+      _notifyListeners();
+    } catch (e) {
+      print('Erro ao buscar pistas do servidor: $e');
+    }
   }
 }

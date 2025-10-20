@@ -7,6 +7,7 @@ import '../services/skatepark_service.dart';
 import '../models/skatepark.dart';
 import '../widgets/create_pista_modal.dart';
 import '../services/auth_service.dart';
+import '../services/favorites_service.dart';
 import '../constants/app_constants.dart';
 
 class MapScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _MapScreenState extends State<MapScreen> {
   final List<String> _selectedTypes = [];
   double _maxDistance = 50.0;
   final _authService = AuthService();
-  final Set<String> _favorites = <String>{};
+  final _favoritesService = FavoritesService();
   
   // Cache e debounce
   List<Skatepark>? _cachedSkateparks;
@@ -34,8 +35,14 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _loadSkateparks();
+    _loadSkateparksFromBackend();
     _skateparkService.addListener(_onSkateparksUpdated);
+    _favoritesService.carregarFavoritos();
+  }
+
+  Future<void> _loadSkateparksFromBackend() async {
+    await _skateparkService.fetchFromServer();
+    _loadSkateparks();
   }
 
   @override
@@ -51,22 +58,14 @@ class _MapScreenState extends State<MapScreen> {
   String _calculateDistance(double lat, double lng) {
     if (_currentPosition == null) return '-- km';
     
-    // Calcula distância em linha reta (haversine)
     double distance = Geolocator.distanceBetween(
       _currentPosition!.latitude,
       _currentPosition!.longitude,
       lat,
       lng,
-    );
+    ) / 1000;
     
-    // Converte para km ou metros dependendo da distância
-    if (distance < 1000) {
-      return '${distance.round()} m';
-    } else {
-      // Adiciona aproximadamente 15-20% para estimar distância real por ruas
-      double estimatedRoadDistance = (distance / 1000) * 1.18;
-      return '${estimatedRoadDistance.toStringAsFixed(1)} km';
-    }
+    return '${distance.toStringAsFixed(1)} km';
   }
   
   Future<void> _getCurrentLocation() async {
@@ -328,17 +327,7 @@ class _MapScreenState extends State<MapScreen> {
                 ],
               ),
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.access_time, size: 16, color: isDark ? Colors.white70 : Colors.black54),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Aberto das ${park.hours}',
-                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
+
               Row(
                 children: [
                   const Icon(Icons.star, size: 16, color: Colors.amber),
@@ -482,8 +471,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
             const SizedBox(height: 16),
             _buildInfoRow(Icons.location_on, park.address),
-            const SizedBox(height: 6),
-            _buildInfoRow(Icons.access_time, 'Aberto das ${park.hours}'),
             const SizedBox(height: 6),
             _buildInfoRow(Icons.directions, _calculateDistance(park.lat, park.lng)),
             const SizedBox(height: 6),
@@ -855,17 +842,16 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   bool _isFavorite(String parkId) {
-    return _favorites.contains(parkId);
+    return _favoritesService.isFavorite(parkId);
   }
 
-  void _toggleFavorite(String parkId) {
-    setState(() {
-      if (_favorites.contains(parkId)) {
-        _favorites.remove(parkId);
-      } else {
-        _favorites.add(parkId);
-      }
-    });
+  Future<void> _toggleFavorite(String parkId) async {
+    if (_isFavorite(parkId)) {
+      await _favoritesService.removeFromFavorites(parkId);
+    } else {
+      await _favoritesService.addToFavorites(parkId);
+    }
+    setState(() {});
   }
 
   void _showRatingDialog(Skatepark park) {

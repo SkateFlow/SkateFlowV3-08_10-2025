@@ -7,7 +7,6 @@ class Skatepark {
   final double lng;
   final List<String> features;
   final double rating;
-  final String hours;
   final String description;
   final List<String> images;
   final String? addedBy;
@@ -23,7 +22,6 @@ class Skatepark {
     required this.lng,
     required this.features,
     required this.rating,
-    required this.hours,
     required this.description,
     required this.images,
     this.addedBy,
@@ -48,7 +46,6 @@ class Skatepark {
       'lng': lng,
       'features': features,
       'rating': rating,
-      'hours': hours,
       'description': description,
       'images': images,
       'addedBy': addedBy,
@@ -67,7 +64,6 @@ class Skatepark {
       lng: json['lng'].toDouble(),
       features: List<String>.from(json['features']),
       rating: json['rating'].toDouble(),
-      hours: json['hours'],
       description: json['description'],
       images: List<String>.from(json['images']),
       addedBy: json['addedBy'],
@@ -85,7 +81,6 @@ class Skatepark {
     double? lng,
     List<String>? features,
     double? rating,
-    String? hours,
     String? description,
     List<String>? images,
     String? addedBy,
@@ -101,7 +96,6 @@ class Skatepark {
       lng: lng ?? this.lng,
       features: features ?? this.features,
       rating: rating ?? this.rating,
-      hours: hours ?? this.hours,
       description: description ?? this.description,
       images: images ?? this.images,
       addedBy: addedBy ?? this.addedBy,

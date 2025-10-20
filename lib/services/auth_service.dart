@@ -19,6 +19,17 @@ class AuthService {
   String? get currentUserId => _currentUserId;
   String? get currentUserName => _currentUserName;
   String? get currentUserImage => _currentUserImage;
+  
+  Usuario? get currentUser {
+    if (_currentUserId == null) return null;
+    return Usuario(
+      id: int.tryParse(_currentUserId!) ?? 0,
+      nome: _currentUserName ?? '',
+      email: '',
+      nivelAcesso: 'USER',
+      statusUsuario: 'ativo',
+    );
+  }
 
   // Callbacks para notificar mudanças
   final List<Function()> _listeners = [];
@@ -69,13 +80,18 @@ class AuthService {
     }
   }
 
-  // Simula logout
+  // Logout completo
   Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    
     _isLoggedIn = false;
     _currentUserId = null;
     _currentUserName = null;
+    _currentUserImage = null;
+    
+    // Limpa dados locais
+    final DatabaseService databaseService = DatabaseService();
+    await databaseService.removeUserImage();
+    await databaseService.saveUserName('');
+    
     _notifyListeners();
   }
 
@@ -102,15 +118,20 @@ class AuthService {
 
   // Simula um usuário logado para teste
   Future<void> simulateLoggedUser() async {
-    _isLoggedIn = true;
-    _currentUserId = 'user_demo';
+    // Tenta fazer login com usuário padrão
+    final success = await login('felipe@gmail.com', '123');
     
-    // Carrega dados salvos do banco
-    final DatabaseService databaseService = DatabaseService();
-    _currentUserName = await databaseService.getUserName() ?? 'Usuário Demo';
-    _currentUserImage = await databaseService.getUserImage();
-    
-    _notifyListeners();
+    if (!success) {
+      // Fallback para demo
+      _isLoggedIn = true;
+      _currentUserId = '1'; // ID do Felipe no banco
+      
+      final DatabaseService databaseService = DatabaseService();
+      _currentUserName = await databaseService.getUserName() ?? 'Felipe';
+      _currentUserImage = await databaseService.getUserImage();
+      
+      _notifyListeners();
+    }
   }
 
   // Atualiza o nome do usuário

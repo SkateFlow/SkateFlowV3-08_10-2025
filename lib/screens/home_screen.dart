@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,8 +7,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../services/skatepark_service.dart';
 import '../services/favorites_service.dart';
+import '../services/event_service.dart';
 import '../models/skatepark.dart';
+import '../models/event.dart';
 import 'rating_screen.dart';
+import 'reviews_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,14 +25,28 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Marker> _markers = [];
   final SkateparkService _skateparkService = SkateparkService();
   final FavoritesService _favoritesService = FavoritesService();
+  final EventService _eventService = EventService();
+  List<Event> _upcomingEvents = [];
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
     _loadNearbyParks();
+    _loadUpcomingEvents();
     _skateparkService.addListener(_onSkateparksUpdated);
     _favoritesService.addListener(_onFavoritesUpdated);
+  }
+  
+  Future<void> _loadUpcomingEvents() async {
+    try {
+      final events = await _eventService.getUpcomingEvents(limit: 3);
+      setState(() {
+        _upcomingEvents = events;
+      });
+    } catch (e) {
+      print('Erro ao carregar eventos: $e');
+    }
   }
 
   @override
@@ -49,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _calculateDistance(double lat, double lng) {
     if (_currentPosition == null) return '-- km';
     
-    // Calcula distância em linha reta (haversine)
     double distance = Geolocator.distanceBetween(
       _currentPosition!.latitude,
       _currentPosition!.longitude,
@@ -57,10 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       lng,
     ) / 1000;
     
-    // Adiciona aproximadamente 15-20% para estimar distância real por ruas
-    double estimatedRoadDistance = distance * 1.18;
-    
-    return '${estimatedRoadDistance.toStringAsFixed(1)} km';
+    return '${distance.toStringAsFixed(1)} km';
   }
 
   List<Skatepark> _getNearbyParks(List<Skatepark> parks, int limit) {
@@ -125,28 +139,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final events = [
-      {
-        'title': 'Campeonato Municipal',
-        'date': '15/06',
-        'location': 'Skatepark Central',
-        'participants': '45'
-      },
-      {
-        'title': 'Workshop de Manobras',
-        'date': '22/06',
-        'location': 'Bowl da Liberdade',
-        'participants': '23'
-      },
-      {
-        'title': 'Sessão Noturna',
-        'date': '28/06',
-        'location': 'Pista do Ibirapuera',
-        'participants': '67'
-      },
-    ];
 
     // Pega as 3 pistas mais próximas
     final allParks = _skateparkService.getAllSkateparks();
@@ -258,14 +256,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(
               height: 160,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  return GestureDetector(
-                    onTap: () => _showEventDetails(context, event),
+              child: _upcomingEvents.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Nenhum evento próximo',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _upcomingEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = _upcomingEvents[index];
+                        return GestureDetector(
+                          onTap: () => _showEventDetails(context, event),
                     child: Container(
                       width: 320,
                       margin: const EdgeInsets.only(right: 12),
@@ -292,22 +297,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      event['title'] as String,
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                ],
+                              Text(
+                                event.title,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 12),
                               Container(
@@ -324,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Icon(Icons.calendar_today,
                                         color: Colors.white, size: 16),
                                     const SizedBox(width: 6),
-                                    Text(event['date'] as String,
+                                    Text(_formatDate(event.date),
                                         style: const TextStyle(
                                             color: Colors.white)),
                                   ],
@@ -338,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      event['location'] as String,
+                                      event.location,
                                       style: const TextStyle(
                                           color: Colors.black54, fontSize: 15),
                                       overflow: TextOverflow.ellipsis,
@@ -398,103 +394,101 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(12)),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(park.images[0]),
-                          fit: BoxFit.cover,
-                          onError: (error, stackTrace) {},
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: _buildImage(park.images[0]),
                         ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              Colors.transparent,
-                              Colors.white.withValues(alpha: 0.7),
-                              Colors.white.withValues(alpha: 0.95),
-                            ],
-                            stops: const [0.0, 0.4, 1.0],
-                          ),
-                        ),
-                        child: InkWell(
-                          onTap: () => _showParkDetails(context, park),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Container(),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      park.name,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w800, 
-                                          fontSize: 17,
-                                          color: Colors.black,
-                                          letterSpacing: 0.3),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black87,
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            park.type,
-                                            style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
-                                                letterSpacing: 0.5),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Icon(Icons.location_on,
-                                            size: 14, color: Colors.black54),
-                                        const SizedBox(width: 2),
-                                        Text(_calculateDistance(park.lat, park.lng),
-                                            style: const TextStyle(
-                                                color: Colors.black87,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 13)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.star,
-                                            size: 16, color: Colors.amber),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          park.rating.toString(),
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black87,
-                                              fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withValues(alpha: 0.7),
+                                Colors.white.withValues(alpha: 0.95),
                               ],
+                              stops: const [0.0, 0.4, 1.0],
+                            ),
+                          ),
+                          child: InkWell(
+                            onTap: () => _showParkDetails(context, park),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Container(),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        park.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800, 
+                                            fontSize: 17,
+                                            color: Colors.black,
+                                            letterSpacing: 0.3),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black87,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              park.type,
+                                              style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                  letterSpacing: 0.5),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.location_on,
+                                              size: 14, color: Colors.black54),
+                                          const SizedBox(width: 2),
+                                          Text(_calculateDistance(park.lat, park.lng),
+                                              style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 13)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.star,
+                                              size: 16, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            park.rating.toString(),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                                fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 );
@@ -635,17 +629,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showEventDetails(BuildContext context, Map<String, dynamic> event) {
+  void _showEventDetails(BuildContext context, Event event) {
     final eventDetails = {
-      'title': event['title'],
-      'date': event['date'],
-      'location': event['location'],
-      'participants': event['participants'],
-      'description':
-          'Evento imperdível de skate com a participação de skatistas de toda a região.',
+      'title': event.title,
+      'date': '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
+      'location': event.location,
+      'participants': event.participants.length,
+      'description': event.description,
       'organizer': 'Organização Local',
       'category': 'Street',
       'image': null,
+      'linkSite': event.linkSite,
     };
 
     showModalBottomSheet(
@@ -771,7 +765,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () => _handleSiteLink(eventDetails['linkSite'] as String?),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
@@ -780,20 +774,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Agendar Ingresso'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Favoritar'),
+                            child: const Text('Ir para o Site'),
                           ),
                         ),
                       ],
@@ -893,29 +874,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 20),
                 _buildInfoRow(Icons.location_on, park.address),
                 const SizedBox(height: 8),
-                _buildInfoRow(Icons.access_time, 'Aberto das ${park.hours}'),
-                const SizedBox(height: 8),
                 _buildInfoRow(Icons.directions, _calculateDistance(park.lat, park.lng)),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${park.rating} estrelas',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : Colors.black,
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReviewsScreen(skatepark: park),
                       ),
-                    ),
-                  ],
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${park.rating.toStringAsFixed(1)} estrelas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white70 
+                            : Colors.blue,
+                      ),
+                    ],
+                  ),
                 ),
-                if (park.addedBy != null)
-                  const SizedBox(height: 8),
-                if (park.addedBy != null)
-                  _buildInfoRow(Icons.person_add, 'Adicionado por: ${park.addedBy}'),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.person_add, park.addedByText),
                 const SizedBox(height: 20),
                 Text(
                   'Estruturas',
@@ -984,38 +980,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: StatefulBuilder(
                             builder: (context, setModalState) {
+                              final isFav = _favoritesService.isFavorite(park.id);
                               return OutlinedButton(
-                                onPressed: () {
-                                  final parkData = {
-                                    'name': park.name,
-                                    'type': park.type,
-                                    'distance': _calculateDistance(park.lat, park.lng),
-                                    'rating': park.rating,
-                                    'image': park.images.isNotEmpty ? park.images.first : 'assets/images/skateparks/SkateCity.png',
-                                    'address': park.address,
-                                    'hours': park.hours,
-                                  };
-                                  
-                                  if (_favoritesService.isFavorite(park.name)) {
-                                    _favoritesService.removeFromFavorites(park.name);
-                                    ScaffoldMessenger.of(modalContext).showSnackBar(
-                                      const SnackBar(content: Text('Removido dos favoritos')),
-                                    );
+                                onPressed: () async {
+                                  if (isFav) {
+                                    final sucesso = await _favoritesService.removeFromFavorites(park.id);
+                                    if (sucesso) {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        const SnackBar(content: Text('Removido dos favoritos')),
+                                      );
+                                      setModalState(() {});
+                                    }
                                   } else {
-                                    if (_favoritesService.addToFavorites(parkData)) {
+                                    final sucesso = await _favoritesService.addToFavorites(park.id);
+                                    if (sucesso) {
                                       ScaffoldMessenger.of(modalContext).showSnackBar(
                                         const SnackBar(content: Text('Adicionado aos favoritos')),
                                       );
+                                      setModalState(() {});
                                     } else {
                                       ScaffoldMessenger.of(modalContext).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
+                                        const SnackBar(
+                                          content: Text('Erro ao adicionar favorito'),
                                           backgroundColor: Colors.orange,
                                         ),
                                       );
                                     }
                                   }
-                                  setModalState(() {});
                                 },
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1023,7 +1014,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: Text(_favoritesService.isFavorite(park.name) ? 'Remover' : 'Favoritar'),
+                                child: Text(isFav ? 'Remover' : 'Favoritar'),
                               );
                             },
                           ),
@@ -1057,35 +1048,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentModalPage = pageIndex;
                 });
               },
-              itemBuilder: (context, index) {
-                return Image.asset(
-                  images[index],
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey.shade300,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.skateboarding,
-                            size: 60,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Imagem não encontrada',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+              itemBuilder: (context, index) => _buildImage(images[index]),
             ),
             if (images.length > 1)
               Positioned(
@@ -1243,6 +1206,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildImage(String imagePath) {
+    if (imagePath.startsWith('data:image')) {
+      try {
+        final base64String = imagePath.split(',')[1];
+        final bytes = base64Decode(base64String);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (e) {
+        return Container(color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 60));
+      }
+    }
+    return Image.asset(imagePath, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 60)));
+  }
+
   void _openGenericNavigation(double lat, double lng, [String? address]) async {
     String geoUrl = 'geo:$lat,$lng';
     
@@ -1254,6 +1230,35 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       _openGoogleMaps(lat, lng, address);
+    }
+  }
+
+  void _handleSiteLink(String? linkSite) {
+    if (linkSite != null && linkSite.isNotEmpty) {
+      _launchURL(linkSite);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Esse evento não possui link cadastrado'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://$url';
+      }
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao abrir o link'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

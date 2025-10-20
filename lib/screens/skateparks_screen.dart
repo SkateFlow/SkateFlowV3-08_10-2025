@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +7,7 @@ import '../services/skatepark_service.dart';
 import '../services/favorites_service.dart';
 import '../models/skatepark.dart';
 import 'rating_screen.dart';
+import 'reviews_screen.dart';
 
 class SkateparksScreen extends StatefulWidget {
   const SkateparksScreen({super.key});
@@ -130,20 +132,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
           return false;
         }
 
-        if (_selectedHours != 'Todos') {
-          String hours = park.hours;
-          switch (_selectedHours) {
-            case 'Manhã (6h-12h)':
-              if (!hours.contains('6h') && !hours.contains('7h') && !hours.contains('8h')) return false;
-              break;
-            case 'Tarde (12h-18h)':
-              if (!hours.contains('18h') && !hours.contains('20h') && !hours.contains('22h')) return false;
-              break;
-            case 'Noite (18h-22h)':
-              if (!hours.contains('20h') && !hours.contains('22h')) return false;
-              break;
-          }
-        }
+        // Filtro de horário removido
 
         // Filtro de pesquisa
         if (_searchQuery.isNotEmpty) {
@@ -429,24 +418,41 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                 const SizedBox(height: 20),
                 _buildInfoRow(Icons.location_on, park.address),
                 const SizedBox(height: 8),
-                _buildInfoRow(Icons.access_time, 'Aberto das ${park.hours}'),
-                const SizedBox(height: 8),
                 _buildInfoRow(Icons.directions, _calculateDistance(park.lat, park.lng)),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${park.rating} estrelas',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : Colors.black,
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReviewsScreen(skatepark: park),
                       ),
-                    ),
-                  ],
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${park.rating.toStringAsFixed(1)} estrelas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white70 
+                            : Colors.blue,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildInfoRow(Icons.person_add, park.addedByText),
@@ -518,38 +524,33 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                         Expanded(
                           child: StatefulBuilder(
                             builder: (context, setModalState) {
+                              final isFav = _favoritesService.isFavorite(park.id);
                               return OutlinedButton(
-                                onPressed: () {
-                                  final parkData = {
-                                    'name': park.name,
-                                    'type': park.type,
-                                    'distance': _calculateDistance(park.lat, park.lng),
-                                    'rating': park.rating,
-                                    'image': park.images.isNotEmpty ? park.images.first : 'assets/images/skateparks/SkateCity.png',
-                                    'address': park.address,
-                                    'hours': park.hours,
-                                  };
-                                  
-                                  if (_favoritesService.isFavorite(park.name)) {
-                                    _favoritesService.removeFromFavorites(park.name);
-                                    ScaffoldMessenger.of(modalContext).showSnackBar(
-                                      const SnackBar(content: Text('Removido dos favoritos')),
-                                    );
+                                onPressed: () async {
+                                  if (isFav) {
+                                    final sucesso = await _favoritesService.removeFromFavorites(park.id);
+                                    if (sucesso) {
+                                      ScaffoldMessenger.of(modalContext).showSnackBar(
+                                        const SnackBar(content: Text('Removido dos favoritos')),
+                                      );
+                                      setModalState(() {});
+                                    }
                                   } else {
-                                    if (_favoritesService.addToFavorites(parkData)) {
+                                    final sucesso = await _favoritesService.addToFavorites(park.id);
+                                    if (sucesso) {
                                       ScaffoldMessenger.of(modalContext).showSnackBar(
                                         const SnackBar(content: Text('Adicionado aos favoritos')),
                                       );
+                                      setModalState(() {});
                                     } else {
                                       ScaffoldMessenger.of(modalContext).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Você pode ter no máximo ${FavoritesService.maxFavoriteParks} pistas favoritas'),
+                                        const SnackBar(
+                                          content: Text('Erro ao adicionar favorito'),
                                           backgroundColor: Colors.orange,
                                         ),
                                       );
                                     }
                                   }
-                                  setModalState(() {});
                                 },
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -557,7 +558,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: Text(_favoritesService.isFavorite(park.name) ? 'Remover' : 'Favoritar'),
+                                child: Text(isFav ? 'Remover' : 'Favoritar'),
                               );
                             },
                           ),
@@ -615,33 +616,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                   }
                 }
               },
-              child: Image.asset(
-                images[index],
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey.shade300,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.skateboarding,
-                          size: 40,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Imagem não encontrada',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              child: _buildImage(images[index]),
             );
           },
         ),
@@ -750,35 +725,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
                   currentModalPage = pageIndex;
                 });
               },
-              itemBuilder: (context, index) {
-                return Image.asset(
-                  images[index],
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey.shade300,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.skateboarding,
-                            size: 60,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Imagem não encontrada',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+              itemBuilder: (context, index) => _buildImage(images[index]),
             ),
             if (images.length > 1)
               Positioned(
@@ -831,6 +778,52 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildImage(String imagePath) {
+    if (imagePath.startsWith('data:image')) {
+      try {
+        final base64String = imagePath.split(',')[1];
+        final bytes = base64Decode(base64String);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildImageError(),
+        );
+      } catch (e) {
+        return _buildImageError();
+      }
+    } else {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImageError(),
+      );
+    }
+  }
+
+  Widget _buildImageError() {
+    return Container(
+      color: Colors.grey.shade300,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.skateboarding,
+            size: 40,
+            color: Colors.grey.shade600,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Imagem não encontrada',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

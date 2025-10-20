@@ -5,22 +5,7 @@ class FavoriteParksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favoriteParks = [
-      {
-        'name': 'Skate City',
-        'type': 'Street',
-        'distance': '1.2 km',
-        'rating': 4.5,
-        'image': 'assets/images/skateparks/SkateCity.png',
-      },
-      {
-        'name': 'Rajas Skatepark',
-        'type': 'Bowl',
-        'distance': '2.5 km',
-        'rating': 4.8,
-        'image': 'assets/images/skateparks/Rajas1.png',
-      },
-    ];
+    final favoriteParks = [];
 
     return Scaffold(
       appBar: AppBar(

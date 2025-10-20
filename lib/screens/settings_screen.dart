@@ -161,109 +161,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildReportScreen() {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Reportar Problema', style: GoogleFonts.lexend(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.bug_report,
-                    color: Colors.black,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Reportar Problema',
-                    style: GoogleFonts.lexend(
-                      color: Colors.black,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Ajude-nos a melhorar o SkateFlow reportando problemas',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.lexend(
-                      color: Colors.black54,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.email,
+                color: Color(0xFF043C70),
+                size: 64,
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Descreva o problema',
-              style: GoogleFonts.lexend(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+              const SizedBox(height: 24),
+              Text(
+                'Encontrou algum problema?',
+                style: GoogleFonts.lexend(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              maxLines: 6,
-              style: GoogleFonts.lexend(),
-              decoration: InputDecoration(
-                hintText:
-                    'Descreva detalhadamente o problema encontrado...\n\nIncluir informações como:\n• O que você estava fazendo\n• O que esperava que acontecesse\n• O que realmente aconteceu',
-                hintStyle: GoogleFonts.lexend(),
-                border: OutlineInputBorder(
+              const SizedBox(height: 16),
+              Text(
+                'Entre em contato conosco:',
+                style: GoogleFonts.lexend(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF043C70).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF043C70)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Problema reportado com sucesso! Obrigado pelo feedback.',
-                        style: GoogleFonts.lexend(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      backgroundColor: const Color(0xFF043C70),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.send),
-                label: Text('Enviar Relatório', style: GoogleFonts.lexend()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF043C70),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                child: Text(
+                  'suporte@skateflow.com',
+                  style: GoogleFonts.lexend(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF043C70),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

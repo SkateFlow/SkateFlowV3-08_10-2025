@@ -4,8 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/pista_request.dart';
-import '../services/pista_request_service.dart';
+import '../services/lugar_service.dart';
+import '../services/auth_service.dart';
 import '../constants/app_constants.dart';
 
 class CreatePistaModal extends StatefulWidget {
@@ -24,7 +24,7 @@ class CreatePistaModal extends StatefulWidget {
 
 class _CreatePistaModalState extends State<CreatePistaModal> {
   final _formKey = GlobalKey<FormState>();
-  final _pistaRequestService = PistaRequestService();
+  final _authService = AuthService();
   
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
@@ -92,7 +92,8 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
     try {
       final response = await http.get(
         Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(endereco)}&limit=1'),
-      );
+        headers: {'User-Agent': 'SkateFlow/1.0'},
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -101,10 +102,19 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
             _latitude = double.parse(data[0]['lat']);
             _longitude = double.parse(data[0]['lon']);
           });
+        } else {
+          setState(() {
+            _latitude = -23.5505;
+            _longitude = -46.6333;
+          });
         }
       }
     } catch (e) {
       debugPrint('Erro ao buscar coordenadas: $e');
+      setState(() {
+        _latitude = -23.5505;
+        _longitude = -46.6333;
+      });
     }
   }
 
@@ -129,6 +139,12 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
       _mostrarSnackBar('Selecione uma categoria', Colors.red);
       return;
     }
+    if (_latitude == null || _longitude == null) {
+      setState(() {
+        _latitude = -23.5505;
+        _longitude = -46.6333;
+      });
+    }
 
     setState(() {
       _loading = true;
@@ -136,38 +152,71 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
 
     try {
       // Converter fotos para base64
-      final fotosBase64 = <String>[];
-      for (final foto in _fotos) {
-        if (foto != null) {
-          final bytes = await foto.readAsBytes();
-          final base64String = base64Encode(bytes);
-          fotosBase64.add('data:image/jpeg;base64,$base64String');
-        }
+      String? foto1Base64;
+      String? foto2Base64;
+      String? foto3Base64;
+
+      if (_fotos[0] != null) {
+        final bytes = await _fotos[0]!.readAsBytes();
+        foto1Base64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      }
+      if (_fotos[1] != null) {
+        final bytes = await _fotos[1]!.readAsBytes();
+        foto2Base64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      }
+      if (_fotos[2] != null) {
+        final bytes = await _fotos[2]!.readAsBytes();
+        foto3Base64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
       }
 
-      final request = PistaRequest(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      // Mapear categoria para ID (2=Bowl, 3=Street, 4=Park)
+      int categoriaId;
+      switch (_categoria.toLowerCase()) {
+        case 'bowl':
+          categoriaId = 2;
+          break;
+        case 'street':
+          categoriaId = 3;
+          break;
+        case 'park':
+          categoriaId = 4;
+          break;
+        default:
+          categoriaId = 3; // Default street
+      }
+
+      final userId = _authService.currentUserId;
+      if (userId == null) {
+        _mostrarSnackBar('Usuário não autenticado', Colors.red);
+        return;
+      }
+
+      final success = await LugarService.solicitarPista(
         nome: _nomeController.text,
         descricao: _descricaoController.text,
-        categoria: _categoria,
+        tipo: _publica ? 'Pública' : 'Particular',
         cep: _cepController.text,
         rua: _rua,
         bairro: _bairro,
         numero: _numeroController.text,
-        latitude: _latitude,
-        longitude: _longitude,
-        publica: _publica,
-        fotos: fotosBase64,
-        dataSolicitacao: DateTime.now(),
-        usuarioId: widget.isUserLoggedIn ? 'user_id' : null,
+        latitude: _latitude.toString(),
+        longitude: _longitude.toString(),
+        categoriaId: categoriaId,
+        usuarioId: int.parse(userId),
+        foto1Base64: foto1Base64,
+        foto2Base64: foto2Base64,
+        foto3Base64: foto3Base64,
       );
 
-      await _pistaRequestService.addRequest(request);
-      
-      _mostrarSnackBar('Solicitação enviada com sucesso!', Colors.green);
-      widget.onClose();
+      if (success) {
+        _mostrarSnackBar('Pista solicitada com sucesso! Aguarde aprovação.', Colors.green);
+        widget.onClose();
+      } else {
+        _mostrarSnackBar('Erro ao enviar solicitação', Colors.red);
+      }
     } catch (e) {
-      _mostrarSnackBar('Erro ao enviar solicitação', Colors.red);
+      print('Erro: $e');
+      _mostrarSnackBar('Erro ao enviar solicitação: $e', Colors.red);
     } finally {
       setState(() {
         _loading = false;

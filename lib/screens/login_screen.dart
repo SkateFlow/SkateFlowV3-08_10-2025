@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         setState(() {
-          _errorMessage = 'Erro ao criar conta';
+          _errorMessage = 'Email já cadastrado ou inválido';
         });
       }
     } else {

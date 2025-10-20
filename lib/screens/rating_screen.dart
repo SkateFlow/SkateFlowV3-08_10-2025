@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/skatepark.dart';
-import '../models/rating.dart';
+import '../services/avaliacao_service.dart';
+import '../services/auth_service.dart';
 
 class RatingScreen extends StatefulWidget {
   final Skatepark skatepark;
@@ -14,6 +15,8 @@ class RatingScreen extends StatefulWidget {
 class _RatingScreenState extends State<RatingScreen> {
   double _rating = 0;
   final TextEditingController _commentController = TextEditingController();
+  final AuthService _authService = AuthService();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -21,7 +24,7 @@ class _RatingScreenState extends State<RatingScreen> {
     super.dispose();
   }
 
-  void _submitRating() {
+  Future<void> _submitRating() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, selecione uma avaliação')),
@@ -29,33 +32,51 @@ class _RatingScreenState extends State<RatingScreen> {
       return;
     }
 
-    // Aqui você salvaria a avaliação
-    Rating(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      skateparkId: widget.skatepark.id,
-      userId: 'current_user_id', // Substituir pelo ID do usuário atual
-      rating: _rating,
-      comment: _commentController.text,
-      createdAt: DateTime.now(),
+    final user = _authService.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você precisa estar logado para avaliar')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final resultado = await AvaliacaoService.salvarAvaliacao(
+      lugarId: int.parse(widget.skatepark.id),
+      usuarioId: user.id,
+      rating: _rating.toInt(),
+      comentario: _commentController.text,
     );
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.check_circle, color: Colors.green, size: 48),
-        title: const Text('Avaliação Enviada!'),
-        content: Text('Obrigado por avaliar ${widget.skatepark.name}'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Fecha o diálogo
-              Navigator.pop(context); // Volta para a tela anterior
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    setState(() => _isSubmitting = false);
+
+    if (resultado['success'] && mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.check_circle, color: Colors.green, size: 48),
+          title: const Text('Avaliação Enviada!'),
+          content: Text('Obrigado por avaliar ${widget.skatepark.name}'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else if (mounted) {
+      final mensagem = resultado['message']?.toString().contains('já avaliou') == true
+          ? 'Você já avaliou esta pista'
+          : 'Erro ao enviar avaliação';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensagem)),
+      );
+    }
   }
 
   @override
@@ -142,7 +163,7 @@ class _RatingScreenState extends State<RatingScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _submitRating,
+                onPressed: _isSubmitting ? null : _submitRating,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
@@ -151,10 +172,19 @@ class _RatingScreenState extends State<RatingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Enviar Avaliação',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Enviar Avaliação',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
             const SizedBox(height: 20),
