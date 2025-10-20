@@ -1,9 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/event.dart';
 
 class EventService {
-  static const String baseUrl = 'http://localhost:8080/evento';
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8080/evento';
+    } else {
+      return 'http://localhost:8080/evento';
+    }
+  }
   
   Future<List<Event>> getPublishedEvents() async {
     try {
@@ -28,7 +35,7 @@ class EventService {
   Future<List<Event>> getUpcomingEvents({int limit = 3}) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/proximos'),
+        Uri.parse('$baseUrl/destaques'),
         headers: {'Content-Type': 'application/json'},
       );
       
@@ -36,6 +43,7 @@ class EventService {
         final List<dynamic> jsonList = json.decode(response.body);
         return jsonList.map((json) => Event.fromMap(json)).toList();
       } else {
+        print('Erro na resposta: ${response.statusCode} - ${response.body}');
         return [];
       }
     } catch (e) {

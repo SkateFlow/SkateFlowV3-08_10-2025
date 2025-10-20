@@ -634,7 +634,6 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': event.title,
       'date': '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
       'location': event.location,
-      'participants': event.participants.length,
       'description': event.description,
       'organizer': 'Organização Local',
       'category': 'Street',
@@ -757,9 +756,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
                     _buildInfoRow(Icons.person,
                         'Organizador: ${eventDetails['organizer']}'),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.group,
-                        '${eventDetails['participants']} participantes'),
                     const SizedBox(height: 30),
                     Row(
                       children: [
