@@ -109,17 +109,42 @@ class SkateparkService {
         if (lugar['foto3'] != null) {
           images.add('data:image/jpeg;base64,${lugar['foto3']}');
         }
+        
+        // Se não há imagens, adiciona uma imagem padrão vazia
+        if (images.isEmpty) {
+          images.add('');
+        }
 
         
         // Buscar rating médio
         final rating = await LugarService.buscarRatingMedio(lugar['id']);
         
+        // Garantir que as coordenadas sejam válidas
+        double latitude = 0.0;
+        double longitude = 0.0;
+        
+        if (lugar['latitude'] != null) {
+          if (lugar['latitude'] is String) {
+            latitude = double.tryParse(lugar['latitude']) ?? 0.0;
+          } else if (lugar['latitude'] is num) {
+            latitude = lugar['latitude'].toDouble();
+          }
+        }
+        
+        if (lugar['longitude'] != null) {
+          if (lugar['longitude'] is String) {
+            longitude = double.tryParse(lugar['longitude']) ?? 0.0;
+          } else if (lugar['longitude'] is num) {
+            longitude = lugar['longitude'].toDouble();
+          }
+        }
+        
         final skatepark = Skatepark(
           id: lugar['id'].toString(),
           name: lugar['nome'] ?? 'Sem nome',
           type: lugar['categoria']?['nome'] ?? 'Street',
-          lat: double.tryParse(lugar['latitude'] ?? '0') ?? 0.0,
-          lng: double.tryParse(lugar['longitude'] ?? '0') ?? 0.0,
+          lat: latitude,
+          lng: longitude,
           rating: rating,
           address: '${lugar['rua'] ?? ''}, ${lugar['numero'] ?? ''} - ${lugar['bairro'] ?? ''}',
           features: [lugar['categoria']?['nome'] ?? 'Street'],
@@ -128,6 +153,8 @@ class SkateparkService {
           usuarioNome: lugar['usuario']?['nome'],
           usuarioNivelAcesso: lugar['usuario']?['nivelAcesso'],
         );
+        
+        print('Pista carregada: ${skatepark.name} - Lat: ${skatepark.lat}, Lng: ${skatepark.lng}');
         
         _skateparks.add(skatepark);
       }

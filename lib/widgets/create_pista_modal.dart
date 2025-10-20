@@ -30,6 +30,8 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
   final _descricaoController = TextEditingController();
   final _cepController = TextEditingController();
   final _numeroController = TextEditingController();
+  final _ruaController = TextEditingController();
+  final _bairroController = TextEditingController();
   
   String _categoria = '';
   String _rua = '';
@@ -50,6 +52,8 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
     _descricaoController.dispose();
     _cepController.dispose();
     _numeroController.dispose();
+    _ruaController.dispose();
+    _bairroController.dispose();
     super.dispose();
   }
 
@@ -76,6 +80,8 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
           setState(() {
             _rua = data['logradouro'] ?? '';
             _bairro = data['bairro'] ?? '';
+            _ruaController.text = _rua;
+            _bairroController.text = _bairro;
           });
           
           if (_rua.isNotEmpty) {
@@ -449,7 +455,7 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                                 fillColor: Colors.grey.shade100,
                                 filled: true,
                               ),
-                              controller: TextEditingController(text: _rua),
+                              controller: _ruaController,
                               readOnly: true,
                             ),
                           ),
@@ -482,7 +488,7 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                           fillColor: Colors.grey.shade100,
                           filled: true,
                         ),
-                        controller: TextEditingController(text: _bairro),
+                        controller: _bairroController,
                         readOnly: true,
                       ),
                       

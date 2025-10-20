@@ -397,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: _buildImage(park.images[0]),
+                          child: _buildImage(park.images.isNotEmpty ? park.images[0] : ''),
                         ),
                         Container(
                           decoration: BoxDecoration(
@@ -1033,6 +1033,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildModalImageCarousel(List<String> images) {
+    if (images.isEmpty) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: const Icon(Icons.skateboarding, size: 60, color: Colors.grey),
+      );
+    }
+    
     return StatefulBuilder(
       builder: (context, setModalState) {
         int currentModalPage = 0;
@@ -1207,16 +1214,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildImage(String imagePath) {
+    if (imagePath.isEmpty) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: const Icon(Icons.skateboarding, size: 60, color: Colors.grey),
+      );
+    }
+    
     if (imagePath.startsWith('data:image')) {
       try {
         final base64String = imagePath.split(',')[1];
         final bytes = base64Decode(base64String);
         return Image.memory(bytes, fit: BoxFit.cover);
       } catch (e) {
-        return Container(color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 60));
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Icon(Icons.skateboarding, size: 60, color: Colors.grey),
+        );
       }
     }
-    return Image.asset(imagePath, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300, child: const Icon(Icons.skateboarding, size: 60)));
+    
+    return Image.asset(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey.shade300,
+        child: const Icon(Icons.skateboarding, size: 60, color: Colors.grey),
+      ),
+    );
   }
 
   void _openGenericNavigation(double lat, double lng, [String? address]) async {

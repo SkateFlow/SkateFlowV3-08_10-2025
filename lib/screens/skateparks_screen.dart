@@ -577,6 +577,30 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
   }
 
   Widget _buildImageCarousel(List<String> images, int carouselIndex) {
+    if (images.isEmpty) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.skateboarding,
+              size: 40,
+              color: Colors.grey.shade600,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Sem imagens',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
     _pageControllers[carouselIndex] ??= PageController();
     _currentPages[carouselIndex] ??= 0;
     
@@ -710,6 +734,30 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
   }
 
   Widget _buildModalImageCarousel(List<String> images) {
+    if (images.isEmpty) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.skateboarding,
+              size: 60,
+              color: Colors.grey.shade600,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Sem imagens',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
     int currentModalPage = 0;
     PageController modalController = PageController();
     
@@ -782,6 +830,10 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
   }
 
   Widget _buildImage(String imagePath) {
+    if (imagePath.isEmpty) {
+      return _buildImageError();
+    }
+    
     if (imagePath.startsWith('data:image')) {
       try {
         final base64String = imagePath.split(',')[1];
