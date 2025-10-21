@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'edit_profile_screen.dart' as edit;
-import 'notifications_settings_screen.dart';
-import 'sound_vibration_settings_screen.dart';
+
 import 'help_screen.dart';
 import 'manage_account_screen.dart';
 
@@ -21,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: Text(
           'Configurações',
-          style: GoogleFonts.lexend(fontWeight: FontWeight.w600, color: Colors.black),
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -35,12 +34,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 () => _navigateTo(context, '/edit-profile')),
 
           ]),
-          _buildSection('App', [
-            _buildTile(Icons.notifications, 'Notificações',
-                () => _navigateTo(context, '/notifications')),
-            _buildTile(Icons.volume_up, 'Som e vibração',
-                () => _navigateTo(context, '/sound')),
-          ]),
+          _buildSection('App', []),
+          const SizedBox(height: 0),
           _buildSection('Conta', [
             _buildTile(Icons.account_circle, 'Gerenciar conta',
                 () => _navigateTo(context, '/manage-account')),
@@ -72,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
             title,
-            style: GoogleFonts.lexend(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -98,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isDestructive ? Colors.red : Colors.grey.shade700),
         title: Text(
           title,
-          style: GoogleFonts.lexend(
+          style: TextStyle(
             color: isDestructive ? Colors.red : Colors.black,
             fontWeight: FontWeight.w500,
           ),
@@ -137,10 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case '/edit-profile':
         return const edit.EditProfileScreen();
 
-      case '/notifications':
-        return const NotificationsSettingsScreen();
-      case '/sound':
-        return const SoundVibrationSettingsScreen();
+
       case '/manage-account':
         return const ManageAccountScreen();
       case '/gps-permissions':
@@ -162,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildReportScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reportar Problema', style: GoogleFonts.lexend(color: Colors.black)),
+        title: const Text('Reportar Problema', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -180,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               Text(
                 'Encontrou algum problema?',
-                style: GoogleFonts.lexend(
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -190,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
               Text(
                 'Entre em contato conosco:',
-                style: GoogleFonts.lexend(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
                 ),
@@ -205,10 +197,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: Text(
                   'suporte@skateflow.com',
-                  style: GoogleFonts.lexend(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF043C70),
+                    color: Color(0xFF043C70),
                   ),
                 ),
               ),
@@ -222,7 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAboutScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sobre o App', style: GoogleFonts.lexend(color: Colors.black)),
+        title: const Text('Sobre o App', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -249,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Versão 1.0.0',
-                    style: GoogleFonts.lexend(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black54,
                       fontWeight: FontWeight.w500,
@@ -268,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Text(
                 'O SkateFlow é o aplicativo definitivo para skatistas que buscam descobrir as melhores pistas e eventos em sua região. Nossa missão é conectar a vibrante comunidade do skate, facilitando a descoberta de novos spots incríveis e promovendo encontros entre skatistas apaixonados pelo esporte.\n\nCom recursos avançados de localização, avaliações da comunidade e informações detalhadas sobre cada pista, o SkateFlow transforma a experiência de explorar o mundo do skate, tornando cada sessão uma nova aventura.',
-                style: GoogleFonts.lexend(
+                style: const TextStyle(
                   fontSize: 16,
                   height: 1.6,
                   color: Colors.black,
@@ -298,7 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Feito com ❤️ para a comunidade do skate',
-                    style: GoogleFonts.lexend(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Colors.black,
@@ -311,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             Text(
               '© 2025 SkateFlow. Todos os direitos reservados.',
-              style: GoogleFonts.lexend(
+              style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 12,
               ),
@@ -326,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildTermsScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Termos de Uso', style: GoogleFonts.lexend(color: Colors.black)),
+        title: const Text('Termos de Uso', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -346,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Termos de Uso do SkateFlow',
-                    style: GoogleFonts.lexend(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
@@ -356,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Última atualização: Janeiro 2025',
-                    style: GoogleFonts.lexend(
+                    style: const TextStyle(
                       color: Colors.black54,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -429,7 +421,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         title: Text(
           title,
-          style: GoogleFonts.lexend(
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
             color: Colors.black,
@@ -437,7 +429,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         subtitle: Text(
           content,
-          style: GoogleFonts.lexend(
+          style: const TextStyle(
             fontSize: 16,
             color: Colors.black,
           ),
@@ -460,16 +452,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(
             title,
-            style: GoogleFonts.lexend(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF043C70),
+              color: Color(0xFF043C70),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: GoogleFonts.lexend(
+            style: const TextStyle(
               fontSize: 14,
               height: 1.5,
               color: Colors.black,
@@ -484,7 +476,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Permissões do Sistema', style: GoogleFonts.lexend(color: Colors.black)),
+        title: const Text('Permissões do Sistema', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -505,7 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Permissão de Localização',
-                    style: GoogleFonts.lexend(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -522,7 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await openAppSettings();
                 },
                 icon: const Icon(Icons.settings),
-                label: Text('Abrir Configurações do Sistema', style: GoogleFonts.lexend()),
+                label: const Text('Abrir Configurações do Sistema'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF043C70),
                   foregroundColor: Colors.white,

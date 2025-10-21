@@ -171,10 +171,6 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => _showAlertsDialog(context),
-          ),
-          IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
               Navigator.pushNamed(context, '/settings');
@@ -1129,61 +1125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAlertsDialog(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.notifications_off_outlined,
-                size: 48,
-                color: isDark ? Colors.white70 : Colors.grey,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Nenhuma notificação',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Você não tem notificações no momento.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDark ? Colors.white70 : Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.white : Colors.black,
-                  foregroundColor: isDark ? Colors.black : Colors.white,
-                ),
-                child: const Text('Fechar'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   void _showNavigationOptions(double lat, double lng, [String? address]) {
     _openGenericNavigation(lat, lng, address);

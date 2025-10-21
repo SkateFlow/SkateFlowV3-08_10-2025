@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'constants/app_constants.dart';
 import 'screens/login_screen.dart';
 import 'screens/loading_screen.dart';
@@ -33,10 +33,12 @@ class SkateApp extends StatelessWidget {
         ),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
-        textTheme: GoogleFonts.lexendTextTheme().copyWith(
-          // Fallback para fontes do sistema
-          bodyLarge: const TextStyle(fontFamily: 'Roboto'),
-          bodyMedium: const TextStyle(fontFamily: 'Roboto'),
+        textTheme: const TextTheme(
+          // Usando fontes do sistema diretamente
+          bodyLarge: TextStyle(fontFamily: 'Roboto'),
+          bodyMedium: TextStyle(fontFamily: 'Roboto'),
+          titleLarge: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w600),
+          titleMedium: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500),
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.grey.shade600,

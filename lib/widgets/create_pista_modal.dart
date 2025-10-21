@@ -503,7 +503,6 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                             _publica = !value;
                           });
                         },
-                        activeThumbColor: const Color(AppConstants.primaryBlue),
                       ),
                     ],
                   ),
