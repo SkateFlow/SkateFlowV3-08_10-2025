@@ -263,18 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       if (_nameController.text != _userName) {
-        final success = await _authService.updateUserName(_nameController.text);
-        if (!success) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Este nome de usuário já está em uso'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
+        await _authService.updateUserName(_nameController.text);
       }
       
       await _authService.updateUserImage(_userImage);

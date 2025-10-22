@@ -326,9 +326,12 @@ class _MapScreenState extends State<MapScreen> {
                 children: [
                   Icon(Icons.location_on, size: 16, color: isDark ? Colors.white70 : Colors.black54),
                   const SizedBox(width: 4),
-                  Text(
-                    park.address,
-                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                  Expanded(
+                    child: Text(
+                      park.address,
+                      style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

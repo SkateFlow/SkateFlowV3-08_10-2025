@@ -135,25 +135,21 @@ class AuthService {
   }
 
   // Atualiza o nome do usuário
-  Future<bool> updateUserName(String newName) async {
+  Future<void> updateUserName(String newName) async {
     if (newName.isNotEmpty && _currentUserId != null) {
       try {
         final int userId = int.parse(_currentUserId!);
-        final success = await UsuarioService.atualizarUsuario(userId, newName);
+        await UsuarioService.atualizarUsuario(userId, newName);
         
-        if (success) {
-          _currentUserName = newName;
-          // Salva localmente para cache
-          final DatabaseService databaseService = DatabaseService();
-          await databaseService.saveUserName(newName);
-          _notifyListeners();
-          return true;
-        }
+        _currentUserName = newName;
+        // Salva localmente para cache
+        final DatabaseService databaseService = DatabaseService();
+        await databaseService.saveUserName(newName);
+        _notifyListeners();
       } catch (e) {
         print('Erro ao atualizar nome: $e');
       }
     }
-    return false;
   }
 
   // Atualiza a imagem do usuário
