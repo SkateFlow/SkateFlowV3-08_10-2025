@@ -217,18 +217,19 @@ class ManageAccountScreen extends StatelessWidget {
                           setState(() => isLoading = true);
                           final userId = AuthService().currentUserId;
                           if (userId != null) {
+                            final senha = passwordController.text.trim();
+                            print('Flutter: Senha enviada (tamanho): ${senha.length}');
                             final success = await UsuarioService.excluirConta(
                               int.parse(userId),
-                              passwordController.text.trim(),
+                              senha,
                             );
 
                             if (success) {
-                              Navigator.pop(dialogContext);
                               await AuthService().logout();
                               passwordController.clear();
                               if (context.mounted) {
-                                Navigator.of(context)
-                                    .pushNamedAndRemoveUntil('/register', (r) => false);
+                                Navigator.of(context, rootNavigator: true)
+                                    .pushNamedAndRemoveUntil('/login', (r) => false);
                               }
                             } else {
                               setState(() => isLoading = false);

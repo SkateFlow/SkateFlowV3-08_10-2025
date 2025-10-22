@@ -409,16 +409,32 @@ class _EventsScreenState extends State<EventsScreen> with AutomaticKeepAliveClie
                     ),
                     const SizedBox(height: 8),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.calendar_today, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Início: ${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                                ),
+                              ),
+                              if (event.endDate != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Fim: ${event.endDate!.day}/${event.endDate!.month}/${event.endDate!.year} às ${event.endDate!.hour}:${event.endDate!.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                                  ),
+                                ),
+                              ]
+                            ],
                           ),
                         ),
                       ],

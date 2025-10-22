@@ -67,6 +67,7 @@ class SkateApp extends StatelessWidget {
       ),
       home: const LoginScreen(),
       routes: {
+        '/login': (context) => const LoginScreen(),
         '/loading': (context) => const LoadingScreen(),
         '/main': (context) => const MainScreen(),
         '/settings': (context) => const SettingsScreen(),

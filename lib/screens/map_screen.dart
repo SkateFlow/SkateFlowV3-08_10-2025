@@ -323,6 +323,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
               const SizedBox(height: 8),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.location_on, size: 16, color: isDark ? Colors.white70 : Colors.black54),
                   const SizedBox(width: 4),
@@ -330,6 +331,7 @@ class _MapScreenState extends State<MapScreen> {
                     child: Text(
                       park.address,
                       style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

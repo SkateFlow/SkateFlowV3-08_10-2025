@@ -272,6 +272,16 @@ class _SkateparksScreenState extends State<SkateparksScreen> with AutomaticKeepA
                         park.images, 
                         index,
                       ),
+                      if (_favoritesService.isFavorite(park.id))
+                        const Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 28,
+                          ),
+                        ),
                       Positioned(
                         bottom: 0,
                         left: 0,

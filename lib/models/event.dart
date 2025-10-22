@@ -3,6 +3,7 @@ class Event {
   final String title;
   final String description;
   final DateTime date;
+  final DateTime? endDate;
   final String location;
   final String imageUrl;
   final String organizerId;
@@ -14,6 +15,7 @@ class Event {
     required this.title,
     required this.description,
     required this.date,
+    this.endDate,
     required this.location,
     required this.imageUrl,
     required this.organizerId,
@@ -56,6 +58,9 @@ class Event {
           : (map['date'] is DateTime 
               ? map['date'] 
               : DateTime.parse(map['date'].toString())),
+      endDate: map['dataFim'] != null 
+          ? DateTime.parse(map['dataFim'].toString())
+          : null,
       location: locationText.isNotEmpty ? locationText : (map['location'] ?? ''),
       imageUrl: map['imageUrl'] ?? '',
       organizerId: map['usuario_id'] != null 
