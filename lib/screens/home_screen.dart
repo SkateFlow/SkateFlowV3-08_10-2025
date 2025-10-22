@@ -20,29 +20,46 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   Position? _currentPosition;
   final List<Marker> _markers = [];
   final SkateparkService _skateparkService = SkateparkService();
   final FavoritesService _favoritesService = FavoritesService();
   final EventService _eventService = EventService();
   List<Event> _upcomingEvents = [];
+  bool _isLoading = false;
+  
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-    _loadNearbyParks();
-    _loadUpcomingEvents();
+    _initializeData();
     _skateparkService.addListener(_onSkateparksUpdated);
     _favoritesService.addListener(_onFavoritesUpdated);
+  }
+  
+  Future<void> _initializeData() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    
+    _getCurrentLocation();
+    _loadUpcomingEvents();
+    _loadNearbyParks();
+    
+    _isLoading = false;
   }
   
   Future<void> _loadUpcomingEvents() async {
     try {
       final events = await _eventService.getUpcomingEvents(limit: 3);
+      final now = DateTime.now();
+      final activeEvents = events.where((event) {
+        return event.date.isAfter(now);
+      }).toList();
       setState(() {
-        _upcomingEvents = events;
+        _upcomingEvents = activeEvents;
       });
     } catch (e) {
       print('Erro ao carregar eventos: $e');
@@ -145,8 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    // Pega as 3 pistas mais próximas
+    super.build(context);
+    
     final allParks = _skateparkService.getAllSkateparks();
     final nearbyParks = _getNearbyParks(allParks, 3);
 
@@ -181,8 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _initializeData,
+        child: SingleChildScrollView(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -265,85 +284,131 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: _upcomingEvents.length,
                       itemBuilder: (context, index) {
                         final event = _upcomingEvents[index];
+                        final now = DateTime.now();
+                        final timeUntilEvent = event.date.difference(now);
+                        final isExpired = timeUntilEvent.isNegative || (timeUntilEvent.inHours < 2 && event.date.day == now.day);
                         return GestureDetector(
                           onTap: () => _showEventDetails(context, event),
-                    child: Container(
-                      width: 320,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          width: 2,
-                          color: Colors.transparent,
-                        ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: const Color(0xFF043C70),
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.title,
-                                style: const TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          child: Container(
+                            width: 320,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                width: 2,
+                                color: isExpired ? Colors.grey : const Color(0xFF043C70),
                               ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF043C70),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.calendar_today,
-                                        color: Colors.white, size: 16),
-                                    const SizedBox(width: 6),
-                                    Text(_formatDate(event.date),
-                                        style: const TextStyle(
-                                            color: Colors.white)),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Stack(
                                 children: [
-                                  const Icon(Icons.location_on,
-                                      color: Colors.black54, size: 18),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      event.location,
-                                      style: const TextStyle(
-                                          color: Colors.black54, fontSize: 15),
-                                      overflow: TextOverflow.ellipsis,
+                                  FutureBuilder<String?>(
+                                    future: _eventService.getEventImage(int.parse(event.id), 1),
+                                    builder: (context, snapshot) {
+                                      Widget imageWidget;
+                                      if (snapshot.hasData && snapshot.data != null) {
+                                        try {
+                                          final bytes = base64Decode(snapshot.data!);
+                                          imageWidget = Image.memory(
+                                            bytes,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          );
+                                        } catch (e) {
+                                          imageWidget = Container(
+                                            color: Colors.grey.shade300,
+                                            child: Icon(Icons.event, size: 40, color: Colors.grey.shade600),
+                                          );
+                                        }
+                                      } else {
+                                        imageWidget = Container(
+                                          color: Colors.grey.shade300,
+                                          child: Icon(Icons.event, size: 40, color: Colors.grey.shade600),
+                                        );
+                                      }
+                                      
+                                      if (isExpired) {
+                                        return ColorFiltered(
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.grey,
+                                            BlendMode.saturation,
+                                          ),
+                                          child: imageWidget,
+                                        );
+                                      }
+                                      return imageWidget;
+                                    },
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withValues(alpha: 0.8),
+                                          ],
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            event.title,
+                                            style: TextStyle(
+                                              color: isExpired ? Colors.grey : Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: isExpired ? TextDecoration.lineThrough : null,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (isExpired) ...[
+                                            const SizedBox(height: 4),
+                                            const Text(
+                                              'Esse evento encerrou',
+                                              style: TextStyle(color: Colors.grey, fontSize: 11),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.calendar_today, color: isExpired ? Colors.grey : Colors.white70, size: 14),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _formatDate(event.date),
+                                                style: TextStyle(color: isExpired ? Colors.grey : Colors.white70, fontSize: 13),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(Icons.location_on, color: isExpired ? Colors.grey : Colors.white70, size: 14),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  event.location,
+                                                  style: TextStyle(color: isExpired ? Colors.grey : Colors.white70, fontSize: 13),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  );
+                        );
                 },
               ),
             ),
@@ -381,6 +446,8 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: nearbyParks.length,
+              addAutomaticKeepAlives: false,
+              addRepaintBoundaries: false,
               itemBuilder: (context, index) {
                 final park = nearbyParks[index];
                 return Card(
@@ -622,10 +689,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
   void _showEventDetails(BuildContext context, Event event) {
+    final now = DateTime.now();
+    final timeUntilEvent = event.date.difference(now);
+    final isExpired = timeUntilEvent.isNegative || (timeUntilEvent.inHours < 2 && event.date.day == now.day);
+    
     final eventDetails = {
       'title': event.title,
       'date': '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
@@ -633,7 +705,6 @@ class _HomeScreenState extends State<HomeScreen> {
       'description': event.description,
       'organizer': 'Organização Local',
       'category': 'Street',
-      'image': null,
       'linkSite': event.linkSite,
     };
 
@@ -672,32 +743,53 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: SizedBox(
                         height: 200,
                         width: double.infinity,
-                        child: eventDetails['image'] != null
-                            ? Image.asset(
-                                eventDetails['image'] as String,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
+                        child: FutureBuilder<String?>(
+                          future: _eventService.getEventImage(int.parse(event.id), 1),
+                          builder: (context, snapshot) {
+                            Widget imageWidget;
+                            if (snapshot.hasData && snapshot.data != null) {
+                              try {
+                                final bytes = base64Decode(snapshot.data!);
+                                imageWidget = Image.memory(bytes, fit: BoxFit.cover);
+                              } catch (e) {
+                                imageWidget = Container(
+                                  color: Colors.grey.shade300,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.event, size: 60, color: Colors.grey.shade600),
+                                      const SizedBox(height: 12),
+                                      Text('Foto do evento', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                                    ],
+                                  ),
+                                );
+                              }
+                            } else {
+                              imageWidget = Container(
                                 color: Colors.grey.shade300,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
-                                      Icons.event,
-                                      size: 60,
-                                      color: Colors.grey.shade600,
-                                    ),
+                                    Icon(Icons.event, size: 60, color: Colors.grey.shade600),
                                     const SizedBox(height: 12),
-                                    Text(
-                                      'Foto do evento',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 16,
-                                      ),
-                                    ),
+                                    Text('Foto do evento', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                                   ],
                                 ),
-                              ),
+                              );
+                            }
+                            
+                            if (isExpired) {
+                              return ColorFiltered(
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.grey,
+                                  BlendMode.saturation,
+                                ),
+                                child: imageWidget,
+                              );
+                            }
+                            return imageWidget;
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -710,9 +802,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).brightness == Brightness.dark 
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark 
                                   ? Colors.white 
-                                  : Colors.black,
+                                  : Colors.black),
+                              decoration: isExpired ? TextDecoration.lineThrough : null,
                             ),
                           ),
                         ),
@@ -720,7 +813,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: isExpired ? Colors.grey : Colors.black,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -733,25 +826,78 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
+                    if (isExpired) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Esse evento encerrou',
+                          style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Text(
                       eventDetails['description'] as String,
                       style: TextStyle(
                         fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark 
+                        color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark 
                             ? Colors.white70 
-                            : Colors.grey.shade700,
+                            : Colors.grey.shade700),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildInfoRow(
-                        Icons.location_on, eventDetails['location'] as String),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            eventDetails['location'] as String,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.calendar_today, eventDetails['date'] as String),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            eventDetails['date'] as String,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.person,
-                        'Organizador: ${eventDetails['organizer']}'),
+                    Row(
+                      children: [
+                        Icon(Icons.person, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Organizador: ${eventDetails['organizer']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 30),
                     Row(
                       children: [

@@ -29,26 +29,39 @@ class FavoritesService extends ChangeNotifier {
     }
   }
 
-  Future<void> carregarFavoritos() async {
+  Future<String?> getFavoritesForComparison() async {
     final user = _authService.currentUser;
-    if (user == null) return;
+    if (user == null) return null;
 
     try {
       final url = Uri.parse('$baseUrl/listar/${user.id}');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final String favoritosStr = response.body.replaceAll('"', '');
-        _favoriteParkIds.clear();
-        if (favoritosStr.isNotEmpty) {
-          final ids = favoritosStr.split(',');
-          _favoriteParkIds.addAll(ids);
-        }
-        notifyListeners();
+        return response.body;
       }
+      return null;
     } catch (e) {
-      print('Erro ao carregar favoritos: $e');
+      print('Erro ao buscar favoritos: $e');
+      return null;
     }
+  }
+
+  Future<void> updateFromData(String? favoritosStr) async {
+    if (favoritosStr == null) return;
+    
+    final cleanStr = favoritosStr.replaceAll('"', '');
+    _favoriteParkIds.clear();
+    if (cleanStr.isNotEmpty) {
+      final ids = cleanStr.split(',');
+      _favoriteParkIds.addAll(ids);
+    }
+    notifyListeners();
+  }
+
+  Future<void> carregarFavoritos() async {
+    final data = await getFavoritesForComparison();
+    await updateFromData(data);
   }
 
   Future<bool> addToFavorites(String parkId) async {

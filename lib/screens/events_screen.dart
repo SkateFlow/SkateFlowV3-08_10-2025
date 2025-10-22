@@ -11,13 +11,16 @@ class EventsScreen extends StatefulWidget {
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends State<EventsScreen> {
+class _EventsScreenState extends State<EventsScreen> with AutomaticKeepAliveClientMixin {
   String _selectedDate = 'Todas';
   String _selectedLocation = 'Todas';
   List<Event> _filteredEvents = [];
   List<Event> _allEvents = [];
   final EventService _eventService = EventService();
   bool _isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -115,6 +118,7 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -134,18 +138,28 @@ class _EventsScreenState extends State<EventsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _filteredEvents.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Nenhum evento encontrado',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
+          : RefreshIndicator(
+              onRefresh: _loadEvents,
+              child: _filteredEvents.isEmpty
+                  ? ListView(
+                      children: const [
+                        SizedBox(height: 200),
+                        Center(
+                          child: Text(
+                            'Sem Eventos Disponíveis',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _filteredEvents.length,
                   itemBuilder: (context, index) {
                     final event = _filteredEvents[index];
+                    final now = DateTime.now();
+                    final timeUntilEvent = event.date.difference(now);
+                    final isExpired = timeUntilEvent.isNegative || (timeUntilEvent.inHours < 2 && event.date.day == now.day);
           
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -163,20 +177,33 @@ class _EventsScreenState extends State<EventsScreen> {
                                 FutureBuilder<String?>(
                                   future: _eventService.getEventImage(int.parse(event.id), 1),
                                   builder: (context, snapshot) {
+                                    Widget imageWidget;
                                     if (snapshot.hasData && snapshot.data != null) {
                                       try {
                                         final bytes = base64Decode(snapshot.data!);
-                                        return Image.memory(
+                                        imageWidget = Image.memory(
                                           bytes,
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           height: double.infinity,
                                         );
                                       } catch (e) {
-                                        return _buildPlaceholderImage();
+                                        imageWidget = _buildPlaceholderImage();
                                       }
+                                    } else {
+                                      imageWidget = _buildPlaceholderImage();
                                     }
-                                    return _buildPlaceholderImage();
+                                    
+                                    if (isExpired) {
+                                      return ColorFiltered(
+                                        colorFilter: const ColorFilter.mode(
+                                          Colors.grey,
+                                          BlendMode.saturation,
+                                        ),
+                                        child: imageWidget,
+                                      );
+                                    }
+                                    return imageWidget;
                                   },
                                 ),
                                 Positioned(
@@ -201,30 +228,45 @@ class _EventsScreenState extends State<EventsScreen> {
                                       children: [
                                         Text(
                                           event.title,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                            color: isExpired ? Colors.grey : Colors.white,
+                                            decoration: isExpired ? TextDecoration.lineThrough : null,
                                           ),
                                         ),
+                                        if (isExpired) ...[
+                                          const SizedBox(height: 4),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade800,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'Esse evento encerrou',
+                                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                                            ),
+                                          ),
+                                        ],
                                         const SizedBox(height: 8),
                                         Row(
                                           children: [
-                                            const Icon(Icons.location_on, size: 16, color: Colors.white70),
+                                            Icon(Icons.location_on, size: 16, color: isExpired ? Colors.grey : Colors.white70),
                                             const SizedBox(width: 4),
                                             Expanded(
                                               child: Text(
                                                 event.location,
-                                                style: const TextStyle(color: Colors.white70),
+                                                style: TextStyle(color: isExpired ? Colors.grey : Colors.white70),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                             const SizedBox(width: 16),
-                                            const Icon(Icons.calendar_today, size: 16, color: Colors.white70),
+                                            Icon(Icons.calendar_today, size: 16, color: isExpired ? Colors.grey : Colors.white70),
                                             const SizedBox(width: 4),
                                             Text(
                                               _formatDate(event.date),
-                                              style: const TextStyle(color: Colors.white70),
+                                              style: TextStyle(color: isExpired ? Colors.grey : Colors.white70),
                                             ),
                                           ],
                                         ),
@@ -240,10 +282,15 @@ class _EventsScreenState extends State<EventsScreen> {
                     );
                   },
                 ),
+            ),
     );
   }
 
   void _showEventDetails(BuildContext context, Event event) {
+    final now = DateTime.now();
+    final timeUntilEvent = event.date.difference(now);
+    final isExpired = timeUntilEvent.isNegative || (timeUntilEvent.inHours < 2 && event.date.day == now.day);
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -282,15 +329,28 @@ class _EventsScreenState extends State<EventsScreen> {
                         child: FutureBuilder<String?>(
                           future: _eventService.getEventImage(int.parse(event.id), 1),
                           builder: (context, snapshot) {
+                            Widget imageWidget;
                             if (snapshot.hasData && snapshot.data != null) {
                               try {
                                 final bytes = base64Decode(snapshot.data!);
-                                return Image.memory(bytes, fit: BoxFit.cover);
+                                imageWidget = Image.memory(bytes, fit: BoxFit.cover);
                               } catch (e) {
-                                return _buildPlaceholderImage();
+                                imageWidget = _buildPlaceholderImage();
                               }
+                            } else {
+                              imageWidget = _buildPlaceholderImage();
                             }
-                            return _buildPlaceholderImage();
+                            
+                            if (isExpired) {
+                              return ColorFiltered(
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.grey,
+                                  BlendMode.saturation,
+                                ),
+                                child: imageWidget,
+                              );
+                            }
+                            return imageWidget;
                           },
                         ),
                       ),
@@ -301,25 +361,68 @@ class _EventsScreenState extends State<EventsScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark 
+                        color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark 
                             ? Colors.white 
-                            : Colors.black,
+                            : Colors.black),
+                        decoration: isExpired ? TextDecoration.lineThrough : null,
                       ),
                     ),
+                    if (isExpired) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Esse evento encerrou',
+                          style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Text(
                       event.description,
                       style: TextStyle(
                         fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark 
+                        color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark 
                             ? Colors.white70 
-                            : Colors.grey.shade700,
+                            : Colors.grey.shade700),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildInfoRow(Icons.location_on, event.location),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            event.location,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.calendar_today, '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}'),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 20, color: isExpired ? Colors.grey : Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${event.date.day}/${event.date.month}/${event.date.year} às ${event.date.hour}:${event.date.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isExpired ? Colors.grey : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 30),
                     Row(
                       children: [

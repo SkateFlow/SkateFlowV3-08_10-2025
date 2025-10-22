@@ -11,6 +11,20 @@ class AvaliacaoService {
     }
   }
 
+  // Verificar se usuário já avaliou
+  static Future<bool> usuarioJaAvaliou({
+    required int lugarId,
+    required int usuarioId,
+  }) async {
+    try {
+      final avaliacoes = await buscarAvaliacoes(lugarId);
+      return avaliacoes.any((av) => av['usuario']?['id'] == usuarioId);
+    } catch (e) {
+      print('Erro ao verificar avaliação: $e');
+      return false;
+    }
+  }
+
   // Salvar avaliação
   static Future<Map<String, dynamic>> salvarAvaliacao({
     required int lugarId,

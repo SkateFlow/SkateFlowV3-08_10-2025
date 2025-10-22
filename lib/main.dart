@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import 'package:google_fonts/google_fonts.dart';
 import 'constants/app_constants.dart';
 import 'screens/login_screen.dart';
 import 'screens/loading_screen.dart';
@@ -11,10 +11,12 @@ import 'screens/events_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/sync_service.dart';
+import 'utils/performance_optimizer.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  PerformanceOptimizer.optimizeApp();
+  PerformanceOptimizer.optimizeImageCache();
   runApp(const SkateApp());
 }
 
@@ -28,26 +30,38 @@ class SkateApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(AppConstants.darkBlue),
+          seedColor: const Color(0xFF043C70),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.white,
-        textTheme: const TextTheme(
-          // Usando fontes do sistema diretamente
-          bodyLarge: TextStyle(fontFamily: 'Roboto'),
-          bodyMedium: TextStyle(fontFamily: 'Roboto'),
-          titleLarge: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w600),
-          titleMedium: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500),
-        ),
+        scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+        textTheme: GoogleFonts.lexendTextTheme(),
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey.shade600,
-          foregroundColor: Colors.white,
-          titleTextStyle: const TextStyle(
-            color: Colors.white,
+          backgroundColor: const Color(0xFFFFFFFF),
+          foregroundColor: const Color(0xFF000000),
+          elevation: 0,
+          titleTextStyle: TextStyle(
+            color: const Color(0xFF000000),
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            fontFamily: 'Roboto', // Fallback
+            fontFamily: GoogleFonts.lexend().fontFamily,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF043C70),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFFFFFFFF),
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -69,17 +83,24 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMixin {
   late int _currentIndex;
   final Map<int, Widget> _screens = {};
   final SyncService _syncService = SyncService();
   
   @override
+  bool get wantKeepAlive => true;
+  
+  @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    // Carrega apenas a tela inicial
     _screens[_currentIndex] = _getScreen(_currentIndex);
-    _syncService.startSync();
+    // Inicia sync apenas após 2 segundos
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _syncService.startSync();
+    });
   }
 
   @override
@@ -101,25 +122,35 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: _screens[_currentIndex] ?? _getScreen(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           if (index != _currentIndex) {
+            // Carrega a tela apenas quando necessário
+            if (!_screens.containsKey(index)) {
+              _screens[index] = _getScreen(index);
+            }
             setState(() {
               _currentIndex = index;
-              // Carrega a tela apenas quando necessário
-              if (!_screens.containsKey(index)) {
-                _screens[index] = _getScreen(index);
-              }
             });
           }
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(AppConstants.darkBlue),
-        unselectedItemColor: Colors.grey,
+        backgroundColor: const Color(0xFFFFFFFF),
+        selectedItemColor: const Color(0xFF043C70),
+        unselectedItemColor: const Color(0xFF888888),
+        elevation: 8,
+        selectedLabelStyle: TextStyle(
+          fontFamily: GoogleFonts.lexend().fontFamily,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontFamily: GoogleFonts.lexend().fontFamily,
+          fontWeight: FontWeight.w500,
+        ),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

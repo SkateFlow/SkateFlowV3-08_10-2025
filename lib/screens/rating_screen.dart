@@ -17,6 +17,55 @@ class _RatingScreenState extends State<RatingScreen> {
   final TextEditingController _commentController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isSubmitting = false;
+  bool _isLoading = true;
+  bool _jaAvaliou = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _verificarAvaliacao();
+  }
+
+  Future<void> _verificarAvaliacao() async {
+    final user = _authService.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final jaAvaliou = await AvaliacaoService.usuarioJaAvaliou(
+      lugarId: int.parse(widget.skatepark.id),
+      usuarioId: user.id,
+    );
+
+    setState(() {
+      _jaAvaliou = jaAvaliou;
+      _isLoading = false;
+    });
+
+    if (_jaAvaliou && mounted) {
+      Future.delayed(Duration.zero, () {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            icon: const Icon(Icons.info_outline, color: Colors.orange, size: 48),
+            title: const Text('Avaliação já enviada'),
+            content: Text('Você já avaliou ${widget.skatepark.name}. Cada usuário pode fazer apenas 1 avaliação por pista.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -81,6 +130,28 @@ class _RatingScreenState extends State<RatingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Avaliar Pista'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_jaAvaliou) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Avaliar Pista'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(

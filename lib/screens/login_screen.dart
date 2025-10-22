@@ -319,8 +319,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: Text(
                                 _errorMessage,
-                                style: GoogleFonts.lexend(
-                                  color: const Color(0xFFd32f2f),
+                                style: const TextStyle(
+                                  color: Color(0xFFd32f2f),
                                   fontSize: 12,
                                 ),
                                 textAlign: TextAlign.center,
@@ -339,8 +339,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: Text(
                                 _successMessage,
-                                style: GoogleFonts.lexend(
-                                  color: const Color(0xFF388e3c),
+                                style: const TextStyle(
+                                  color: Color(0xFF388e3c),
                                   fontSize: 12,
                                 ),
                                 textAlign: TextAlign.center,
@@ -356,9 +356,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 backgroundColor: const Color(0xFF043C70),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(50),
                                 ),
                                 elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                                 disabledBackgroundColor: const Color(0xFF043C70).withValues(alpha: 0.7),
                               ),
                               child: _loading
@@ -372,7 +373,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     )
                                   : Text(
                                       _isRegister ? 'CADASTRAR' : 'ENTRAR',
-                                      style: GoogleFonts.lexend(
+                                      style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: 0.5,
@@ -394,8 +395,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 child: Text(
                                   _isRegister ? 'Já tem conta? Entrar' : 'Não tem conta? Cadastrar',
-                                  style: GoogleFonts.lexend(
-                                    color: const Color(0xFF043C70),
+                                  style: const TextStyle(
+                                    color: Color(0xFF043C70),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 12,
                                   ),
@@ -409,8 +410,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: Text(
                                     'Esqueceu a senha?',
-                                    style: GoogleFonts.lexend(
-                                      color: const Color(0xFF666666),
+                                    style: const TextStyle(
+                                      color: Color(0xFF666666),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -554,10 +555,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       return TextField(
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
-        style: GoogleFonts.lexend(),
+        style: const TextStyle(),
         decoration: InputDecoration(
           hintText: 'Digite seu email',
-          hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+          hintStyle: const TextStyle(color: Color(0xFF999999)),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
@@ -575,10 +576,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         controller: _codeController,
         keyboardType: TextInputType.number,
         maxLength: 5,
-        style: GoogleFonts.lexend(),
+        style: const TextStyle(),
         decoration: InputDecoration(
           hintText: 'Código de 5 dígitos',
-          hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+          hintStyle: const TextStyle(color: Color(0xFF999999)),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
@@ -597,10 +598,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
           TextField(
             controller: _newPasswordController,
             obscureText: _obscureNewPassword,
-            style: GoogleFonts.lexend(),
+            style: const TextStyle(),
             decoration: InputDecoration(
               hintText: 'Nova senha',
-              hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+              hintStyle: const TextStyle(color: Color(0xFF999999)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
@@ -621,10 +622,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
           TextField(
             controller: _confirmPasswordController,
             obscureText: _obscureConfirmPassword,
-            style: GoogleFonts.lexend(),
+            style: const TextStyle(),
             decoration: InputDecoration(
               hintText: 'Confirmar nova senha',
-              hintStyle: GoogleFonts.lexend(color: const Color(0xFF999999)),
+              hintStyle: const TextStyle(color: Color(0xFF999999)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Color(0xFFe0e0e0)),
@@ -776,19 +777,19 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
             const SizedBox(height: 16),
             Text(
               _getTitle(),
-              style: GoogleFonts.lexend(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF333333),
+                color: Color(0xFF333333),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               _getSubtitle(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.lexend(
+              style: const TextStyle(
                 fontSize: 14,
-                color: const Color(0xFF666666),
+                color: Color(0xFF666666),
               ),
             ),
             const SizedBox(height: 24),
@@ -805,10 +806,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     ),
                     child: Text(
                       'Cancelar',
-                      style: GoogleFonts.lexend(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF666666),
+                        color: Color(0xFF666666),
                       ),
                     ),
                   ),
@@ -820,8 +821,8 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF043C70),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                       elevation: 0,
                     ),
                     child: _isLoading
@@ -835,7 +836,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                           )
                         : Text(
                             _codeValidated ? 'Redefinir' : (_codeSent ? 'Validar' : 'Enviar'),
-                            style: GoogleFonts.lexend(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

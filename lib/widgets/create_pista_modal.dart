@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/lugar_service.dart';
 import '../services/auth_service.dart';
 import '../constants/app_constants.dart';
+import '../utils/app_theme.dart';
 
 class CreatePistaModal extends StatefulWidget {
   final bool isUserLoggedIn;
@@ -256,33 +258,54 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
     }
 
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
-      child: SizedBox(
+      insetPadding: const EdgeInsets.all(20),
+      backgroundColor: Colors.transparent,
+      child: Container(
         width: double.maxFinite,
         height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
         child: Column(
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(AppConstants.primaryBlue),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Solicitar Nova Pista',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.lexend(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textColor,
                     ),
                   ),
                   IconButton(
                     onPressed: widget.onClose,
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: AppTheme.textColor),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey.shade100,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -297,64 +320,120 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Fotos
-                      const Text(
-                        'Fotos da Pista',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 80,
-                        child: Row(
-                          children: List.generate(3, (index) => 
-                            Expanded(
-                              child: Container(
-                                margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-                                child: GestureDetector(
-                                  onTap: () => _selecionarFoto(index),
+                      // Fotos Section
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Fotos da Pista *',
+                              style: GoogleFonts.lexend(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: List.generate(3, (index) => 
+                                Expanded(
                                   child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: _fotos[index] != null
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
-                                            child: Image.file(
-                                              _fotos[index]!,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        : const Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.add_photo_alternate, color: Colors.grey),
-                                              Text('Foto', style: TextStyle(fontSize: 12)),
-                                            ],
+                                    margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
+                                    child: GestureDetector(
+                                      onTap: () => _selecionarFoto(index),
+                                      child: Container(
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: const Color(0xFFCBD5E0),
+                                            width: 2,
+                                            style: BorderStyle.solid,
                                           ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          color: const Color(0xFFF8FAFC),
+                                        ),
+                                        child: _fotos[index] != null
+                                            ? ClipRRect(
+                                                borderRadius: BorderRadius.circular(10),
+                                                child: Image.file(
+                                                  _fotos[index]!,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                            : Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.upload_file,
+                                                    color: Color(0xFF64748B),
+                                                    size: 24,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'Foto ${index + 1}',
+                                                    style: GoogleFonts.lexend(
+                                                      fontSize: 12,
+                                                      color: const Color(0xFF64748B),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                       
                       const SizedBox(height: 16),
                       
                       // Nome
-                      TextFormField(
-                        controller: _nomeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome da Pista',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o nome da pista';
-                          }
-                          return null;
-                        },
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Nome da Pista *',
+                            style: GoogleFonts.lexend(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _nomeController,
+                            style: GoogleFonts.lexend(),
+                            decoration: InputDecoration(
+                              hintText: 'Digite o nome da pista',
+                              hintStyle: GoogleFonts.lexend(
+                                color: const Color(0xFF64748B),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                              ),
+                              contentPadding: const EdgeInsets.all(16),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira o nome da pista';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
                       ),
                       
                       const SizedBox(height: 16),
@@ -379,28 +458,51 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                       const SizedBox(height: 16),
                       
                       // Categoria
-                      const Text(
-                        'Categoria da Pista',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: _categorias.map((categoria) => 
-                          ChoiceChip(
-                            label: Text(categoria.toUpperCase()),
-                            selected: _categoria == categoria,
-                            onSelected: (selected) {
-                              setState(() {
-                                _categoria = selected ? categoria : '';
-                              });
-                            },
-                            selectedColor: const Color(AppConstants.primaryBlue),
-                            labelStyle: TextStyle(
-                              color: _categoria == categoria ? Colors.white : Colors.black,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Categoria da Pista *',
+                            style: GoogleFonts.lexend(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textColor,
                             ),
                           ),
-                        ).toList(),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: _categorias.map((categoria) => 
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _categoria = _categoria == categoria ? '' : categoria;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: _categoria == categoria ? AppTheme.primaryColor : Colors.white,
+                                    border: Border.all(
+                                      color: _categoria == categoria ? AppTheme.primaryColor : const Color(0xFFE2E8F0),
+                                      width: 2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  child: Text(
+                                    categoria.toUpperCase(),
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: _categoria == categoria ? Colors.white : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ).toList(),
+                          ),
+                        ],
                       ),
                       
                       const SizedBox(height: 16),
@@ -512,23 +614,32 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
             
             // Buttons
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: widget.onClose,
-                      child: const Text('Cancelar'),
+                      style: AppTheme.secondaryButtonStyle,
+                      child: Text(
+                        'Cancelar',
+                        style: GoogleFonts.lexend(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _loading ? null : _salvarSolicitacao,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(AppConstants.primaryBlue),
-                        foregroundColor: Colors.white,
-                      ),
+                      style: AppTheme.primaryButtonStyle,
                       child: _loading
                           ? const SizedBox(
                               width: 20,
@@ -538,7 +649,13 @@ class _CreatePistaModalState extends State<CreatePistaModal> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text('Solicitar Pista'),
+                          : Text(
+                              'Solicitar Pista',
+                              style: GoogleFonts.lexend(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
                 ],

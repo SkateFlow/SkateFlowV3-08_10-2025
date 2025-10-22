@@ -130,7 +130,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'Nenhuma avaliação ainda',
-                        style: GoogleFonts.lexend(
+                        style: TextStyle(
                           fontSize: 18,
                           color: Colors.grey.shade600,
                           fontWeight: FontWeight.w500,
@@ -139,7 +139,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Seja o primeiro a avaliar esta pista!',
-                        style: GoogleFonts.lexend(
+                        style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade500,
                         ),
@@ -159,7 +159,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                             children: [
                               Text(
                                 widget.skatepark.name,
-                                style: GoogleFonts.lexend(
+                                style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -171,7 +171,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     widget.skatepark.rating.toStringAsFixed(1),
-                                    style: GoogleFonts.lexend(
+                                    style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -179,7 +179,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     '(${_avaliacoes.length} ${_avaliacoes.length == 1 ? 'avaliação' : 'avaliações'})',
-                                    style: GoogleFonts.lexend(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey.shade600,
                                     ),
@@ -219,7 +219,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                           backgroundColor: Colors.grey.shade300,
                                           child: Text(
                                             usuario['nome'][0].toUpperCase(),
-                                            style: GoogleFonts.lexend(
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black,
                                             ),
@@ -232,14 +232,14 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                             children: [
                                               Text(
                                                 usuario['nome'],
-                                                style: GoogleFonts.lexend(
+                                                style: const TextStyle(
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 16,
                                                 ),
                                               ),
                                               Text(
                                                 _formatarData(avaliacao['dataAvaliacao']),
-                                                style: GoogleFonts.lexend(
+                                                style: TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.grey.shade600,
                                                 ),
@@ -271,7 +271,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                       const SizedBox(height: 12),
                                       Text(
                                         avaliacao['comentario'],
-                                        style: GoogleFonts.lexend(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey.shade800,
                                         ),

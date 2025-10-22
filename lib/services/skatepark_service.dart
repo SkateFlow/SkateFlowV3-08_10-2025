@@ -85,10 +85,19 @@ class SkateparkService {
     await Future.delayed(const Duration(seconds: 2));
   }
 
-  // Buscar pistas do backend
-  Future<void> fetchFromServer() async {
+  // Buscar dados para comparação (sem atualizar)
+  Future<List<dynamic>> fetchDataForComparison() async {
     try {
-      final lugares = await LugarService.buscarPistas();
+      return await LugarService.buscarPistas();
+    } catch (e) {
+      print('Erro ao buscar dados: $e');
+      return [];
+    }
+  }
+
+  // Atualizar a partir de dados já buscados
+  Future<void> updateFromData(List<dynamic> lugares) async {
+    try {
       
       // Limpar pistas antigas
       _skateparks.clear();
@@ -161,7 +170,13 @@ class SkateparkService {
       
       _notifyListeners();
     } catch (e) {
-      print('Erro ao buscar pistas do servidor: $e');
+      print('Erro ao atualizar pistas: $e');
     }
+  }
+
+  // Buscar pistas do backend (método legado)
+  Future<void> fetchFromServer() async {
+    final lugares = await fetchDataForComparison();
+    await updateFromData(lugares);
   }
 }

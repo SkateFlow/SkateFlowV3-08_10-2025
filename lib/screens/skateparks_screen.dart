@@ -16,7 +16,7 @@ class SkateparksScreen extends StatefulWidget {
   State<SkateparksScreen> createState() => _SkateparksScreenState();
 }
 
-class _SkateparksScreenState extends State<SkateparksScreen> {
+class _SkateparksScreenState extends State<SkateparksScreen> with AutomaticKeepAliveClientMixin {
   final Map<int, PageController> _pageControllers = {};
   final Map<int, int> _currentPages = {};
   final Map<int, Timer> _timers = {};
@@ -31,6 +31,9 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
   final SkateparkService _skateparkService = SkateparkService();
   final FavoritesService _favoritesService = FavoritesService();
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -184,6 +187,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -228,10 +232,27 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _filteredSkateparks.length,
-        itemBuilder: (context, index) {
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await _skateparkService.fetchFromServer();
+          _applyFilters();
+        },
+        child: _filteredSkateparks.isEmpty
+            ? ListView(
+                children: const [
+                  SizedBox(height: 200),
+                  Center(
+                    child: Text(
+                      'Sem Pistas Disponíveis',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ),
+                ],
+              )
+            : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _filteredSkateparks.length,
+              itemBuilder: (context, index) {
           final park = _filteredSkateparks[index];
 
           return Card(
@@ -330,6 +351,7 @@ class _SkateparksScreenState extends State<SkateparksScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }
